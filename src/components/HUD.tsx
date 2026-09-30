@@ -65,7 +65,7 @@ export const HUD: React.FC<HUDProps> = ({
           onClick={onPause}
           className="text-xs bg-neutral-800/80 hover:bg-neutral-700 text-white px-3 py-1.5 rounded-lg border border-neutral-600 backdrop-blur-sm transition-colors cursor-pointer"
         >
-          ESC / Pausa
+          ESPACIO / Pausa
         </button>
       </div>
 

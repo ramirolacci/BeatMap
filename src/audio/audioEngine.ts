@@ -104,6 +104,11 @@ class AudioEngine {
     return this.musicBuffer;
   }
 
+  public setCustomBuffer(buffer: AudioBuffer) {
+    this.init();
+    this.musicBuffer = buffer;
+  }
+
   public async loadAudioFile(file: File): Promise<AudioBuffer> {
     this.init();
     const arrayBuf = await file.arrayBuffer();

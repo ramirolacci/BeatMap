@@ -28,26 +28,54 @@ export const CanvasPlayfield: React.FC<CanvasPlayfieldProps> = ({
 }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const cursorHistoryRef = useRef<Array<{ x: number; y: number; alpha: number }>>([]);
+  const localCursorRef = useRef({ x: cursorX, y: cursorY });
 
-  const getPlayfieldCoords = (e: React.PointerEvent<HTMLCanvasElement>) => {
+  useEffect(() => {
+    localCursorRef.current = { x: cursorX, y: cursorY };
+  }, [cursorX, cursorY]);
+
+  // Establecer dimensiones del canvas SOLO al montar
+  useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas) return { px: 256, py: 192 };
-    const rect = canvas.getBoundingClientRect();
-    const px = Math.max(0, Math.min(512, ((e.clientX - rect.left) / rect.width) * 512));
-    const py = Math.max(0, Math.min(384, ((e.clientY - rect.top) / rect.height) * 384));
-    return { px, py };
-  };
+    if (!canvas) return;
+    canvas.width = 1024;
+    canvas.height = 768;
+  }, []);
 
-  const handlePointerDown = (e: React.PointerEvent<HTMLCanvasElement>) => {
-    const { px, py } = getPlayfieldCoords(e);
-    onPointerMove(px, py);
-    onTap(px, py);
-  };
+  // Eventos nativos de ratón/puntero con cero latencia y registro directo de clics
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
 
-  const handlePointerMove = (e: React.PointerEvent<HTMLCanvasElement>) => {
-    const { px, py } = getPlayfieldCoords(e);
-    onPointerMove(px, py);
-  };
+    const getPlayfieldCoords = (clientX: number, clientY: number) => {
+      const rect = canvas.getBoundingClientRect();
+      const px = Math.max(0, Math.min(512, ((clientX - rect.left) / rect.width) * 512));
+      const py = Math.max(0, Math.min(384, ((clientY - rect.top) / rect.height) * 384));
+      return { px, py };
+    };
+
+    const handlePointerMove = (e: MouseEvent | PointerEvent) => {
+      const { px, py } = getPlayfieldCoords(e.clientX, e.clientY);
+      localCursorRef.current = { x: px, y: py };
+      onPointerMove(px, py);
+    };
+
+    const handlePointerDown = (e: MouseEvent | PointerEvent) => {
+      e.preventDefault();
+      const { px, py } = getPlayfieldCoords(e.clientX, e.clientY);
+      localCursorRef.current = { x: px, y: py };
+      onPointerMove(px, py);
+      onTap(px, py);
+    };
+
+    window.addEventListener('pointermove', handlePointerMove, { passive: true });
+    canvas.addEventListener('pointerdown', handlePointerDown, { passive: false });
+
+    return () => {
+      window.removeEventListener('pointermove', handlePointerMove);
+      canvas.removeEventListener('pointerdown', handlePointerDown);
+    };
+  }, [onTap, onPointerMove]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -55,20 +83,19 @@ export const CanvasPlayfield: React.FC<CanvasPlayfieldProps> = ({
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // Render scale matching crisp high-DPI displays
     const width = 512;
     const height = 384;
-    canvas.width = width * 2;
-    canvas.height = height * 2;
+
+    ctx.save();
     ctx.scale(2, 2);
 
-    // Clear canvas
+    // Limpiar canvas
     ctx.clearRect(0, 0, width, height);
 
-    // 1. Draw Follow Points between consecutive upcoming notes
+    // 1. Dibujar Follow Points
     drawFollowPoints(ctx, visibleObjects, currentTimeMs, preemptMs, circleRadius);
 
-    // 2. Draw Hit Objects (Sliders first, then Hit Circles)
+    // 2. Dibujar Objetos (Sliders y Círculos)
     const sortedObjects = [...visibleObjects].sort((a, b) => b.time - a.time);
 
     for (const obj of sortedObjects) {
@@ -79,21 +106,23 @@ export const CanvasPlayfield: React.FC<CanvasPlayfieldProps> = ({
       }
     }
 
-    // 3. Draw Judgement Effects (300, 100, 50, Miss)
+    // 3. Dibujar Efectos de Juicio
     drawJudgements(ctx, activeJudgements, currentTimeMs);
 
-    // 4. Draw Cursor & Cursor Trail
-    drawCursor(ctx, cursorX, cursorY, keyState, cursorHistoryRef);
+    // 4. Dibujar Cursor con posición local directa sin delay
+    const currentX = localCursorRef.current.x;
+    const currentY = localCursorRef.current.y;
+    drawCursor(ctx, currentX, currentY, keyState, cursorHistoryRef);
 
-  }, [visibleObjects, activeJudgements, currentTimeMs, preemptMs, circleRadius, cursorX, cursorY, keyState]);
+    ctx.restore();
+
+  }, [visibleObjects, activeJudgements, currentTimeMs, preemptMs, circleRadius, keyState]);
 
   return (
-    <div className="relative w-full h-full flex items-center justify-center bg-black overflow-hidden select-none">
+    <div className="relative w-full h-full flex items-center justify-center bg-black overflow-hidden select-none cursor-none">
       <canvas
         ref={canvasRef}
-        onPointerDown={handlePointerDown}
-        onPointerMove={handlePointerMove}
-        className="w-full h-full max-w-[1280px] max-h-[720px] aspect-[16/9] object-contain cursor-none touch-none"
+        className="w-full h-full max-w-[1024px] max-h-[768px] aspect-[4/3] object-contain cursor-none touch-none"
       />
     </div>
   );

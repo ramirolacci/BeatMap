@@ -53,7 +53,6 @@ export function App() {
   const [activeJudgements, setActiveJudgements] = useState<ActiveJudgement[]>([]);
 
   const [currentTimeMs, setCurrentTimeMs] = useState(0);
-  const [cursorPos, setCursorPos] = useState({ x: 256, y: 192 });
   const cursorPosRef = useRef({ x: 256, y: 192 });
 
   const gameEngineRef = useRef<GameEngine | null>(null);
@@ -75,7 +74,11 @@ export function App() {
     if (!selectedBeatmap) return;
 
     // 1. Preparar pista de audio
-    if (selectedBeatmap.synthTheme) {
+    if (selectedBeatmap.audioBuffer) {
+      audioEngine.setCustomBuffer(selectedBeatmap.audioBuffer);
+    } else if (selectedBeatmap.audioUrl) {
+      await audioEngine.loadAudioFromUrl(selectedBeatmap.audioUrl);
+    } else if (selectedBeatmap.synthTheme) {
       audioEngine.generateProceduralTrack(selectedBeatmap.synthTheme, 90);
     }
 
@@ -133,17 +136,24 @@ export function App() {
 
   useEffect(() => {
     if (gameState === 'playing') {
+      document.body.style.cursor = 'none';
       animationFrameRef.current = requestAnimationFrame(gameLoop);
+    } else {
+      document.body.style.cursor = 'default';
     }
     return () => {
+      document.body.style.cursor = 'default';
       if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
     };
   }, [gameState, gameLoop]);
 
-  // Manejadores de teclado (Z/X y ESC)
+  // Manejadores de teclado (Barra espaciadora y ESC para pausa)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
+      if (e.key === 'Escape' || e.code === 'Space' || e.key === ' ') {
+        if (e.code === 'Space' || e.key === ' ') {
+          e.preventDefault();
+        }
         if (gameState === 'playing') {
           audioEngine.pause();
           setGameState('paused');
@@ -193,7 +203,6 @@ export function App() {
   const handlePlayfieldTap = (px: number, py: number) => {
     if (gameState !== 'playing' || !gameEngineRef.current) return;
     cursorPosRef.current = { x: px, y: py };
-    setCursorPos({ x: px, y: py });
     setKeyState(prev => ({ ...prev, k1: true, k1Count: prev.k1Count + 1 }));
     gameEngineRef.current.handleTap(px, py);
     setTimeout(() => setKeyState(prev => ({ ...prev, k1: false })), 80);
@@ -201,7 +210,6 @@ export function App() {
 
   const handlePointerMove = (px: number, py: number) => {
     cursorPosRef.current = { x: px, y: py };
-    setCursorPos({ x: px, y: py });
   };
 
   return (
@@ -228,8 +236,8 @@ export function App() {
             currentTimeMs={currentTimeMs}
             preemptMs={gameEngineRef.current?.getPreemptMs() || 600}
             circleRadius={gameEngineRef.current?.getCircleRadius() || 36}
-            cursorX={cursorPos.x}
-            cursorY={cursorPos.y}
+            cursorX={cursorPosRef.current.x}
+            cursorY={cursorPosRef.current.y}
             keyState={keyState}
             onTap={handlePlayfieldTap}
             onPointerMove={handlePointerMove}

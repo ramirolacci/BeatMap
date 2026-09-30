@@ -80,8 +80,8 @@ export class GameEngine {
       }
     }
 
-    // 3. Natural HP drain
-    this.scoreState.hp = Math.max(0, this.scoreState.hp - 0.03);
+    // 3. Drenaje suave de HP
+    this.scoreState.hp = Math.max(0, this.scoreState.hp - 0.005);
 
     // 4. Clean expired floating judgements (after 800ms)
     this.activeJudgements = this.activeJudgements.filter(j => timeMs - j.spawnTime < 800);
@@ -181,7 +181,7 @@ export class GameEngine {
       // Miss
       this.scoreState.combo = 0;
       this.scoreState.misses++;
-      this.scoreState.hp = Math.max(0, this.scoreState.hp - 15);
+      this.scoreState.hp = Math.max(0, this.scoreState.hp - 6);
       
       this.scoreState.hitErrors.push({
         offset: 150, // Late miss marker

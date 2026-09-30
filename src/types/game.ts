@@ -55,6 +55,7 @@ export interface Beatmap {
   od: number; // Overall Difficulty (1-10)
   hpDrain: number; // HP Drain (1-10)
   audioUrl?: string;
+  audioBuffer?: AudioBuffer;
   synthTheme?: 'synthwave' | 'cyberpunk' | 'chillhop' | 'fast-techno';
   hitObjects: HitObject[];
   bgUrl?: string;

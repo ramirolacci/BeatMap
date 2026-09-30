@@ -1,7 +1,9 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import type { Beatmap, GameSettings } from '../types/game';
-import { Play, Volume2, Upload, Music, Disc, Sparkles, SlidersHorizontal, Zap } from 'lucide-react';
+import { Play, Volume2, Upload, Music, Disc, Sparkles, SlidersHorizontal, Zap, FileAudio, Loader2 } from 'lucide-react';
 import { parseOsuFile } from '../utils/osuParser';
+import { generateBeatmapFromAudioBuffer } from '../utils/audioBeatmapGenerator';
+import { audioEngine } from '../audio/audioEngine';
 
 interface MainMenuProps {
   beatmaps: Beatmap[];
@@ -22,18 +24,78 @@ export const MainMenu: React.FC<MainMenuProps> = ({
   onUpdateSettings,
   onAddCustomBeatmap
 }) => {
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const osuInputRef = useRef<HTMLInputElement | null>(null);
+  const audioInputRef = useRef<HTMLInputElement | null>(null);
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+  const [isDragging, setIsDragging] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [processingMsg, setProcessingMsg] = useState('Procesando archivo...');
+
+  const processFile = async (file: File) => {
     if (!file) return;
 
-    if (file.name.endsWith('.osu')) {
-      const text = await file.text();
-      const parsed = parseOsuFile(text);
-      onAddCustomBeatmap(parsed);
-      onSelectBeatmap(parsed);
+    if (file.name.toLowerCase().endsWith('.osu')) {
+      try {
+        setIsProcessing(true);
+        setProcessingMsg('Cargando mapa .osu...');
+        const text = await file.text();
+        const parsed = parseOsuFile(text);
+        onAddCustomBeatmap(parsed);
+        onSelectBeatmap(parsed);
+      } catch (err) {
+        console.error('Error al procesar .osu:', err);
+      } finally {
+        setIsProcessing(false);
+      }
+    } else if (
+      file.type.startsWith('audio/') ||
+      /\.(mp3|wav|ogg|flac|m4a|aac)$/i.test(file.name)
+    ) {
+      try {
+        setIsProcessing(true);
+        setProcessingMsg('Analizando audio y generando patrón de ritmo...');
+        const buffer = await audioEngine.loadAudioFile(file);
+        const beatmap = generateBeatmapFromAudioBuffer(buffer, file.name, 'Hard');
+        onAddCustomBeatmap(beatmap);
+        onSelectBeatmap(beatmap);
+      } catch (err) {
+        console.error('Error al decodificar audio:', err);
+      } finally {
+        setIsProcessing(false);
+      }
     }
+  };
+
+  const handleOsuUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) processFile(file);
+    e.target.value = '';
+  };
+
+  const handleAudioUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) processFile(file);
+    e.target.value = '';
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) processFile(file);
   };
 
   const getDifficultyBadge = (version: string) => {
@@ -48,14 +110,41 @@ export const MainMenu: React.FC<MainMenuProps> = ({
   };
 
   return (
-    <div className="relative w-full h-full min-h-screen bg-[#050508] text-white flex flex-col justify-between p-4 sm:p-6 md:p-8 font-sans overflow-y-auto selection:bg-pink-500 selection:text-white">
+    <div 
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+      className="relative w-full h-full min-h-screen bg-[#050508] text-white flex flex-col justify-between p-4 sm:p-6 md:p-8 font-sans overflow-y-auto selection:bg-pink-500 selection:text-white"
+    >
+      {/* Drag & Drop Visual Overlay */}
+      {isDragging && (
+        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex flex-col items-center justify-center p-6 border-4 border-dashed border-pink-500 animate-pulse">
+          <FileAudio className="w-20 h-20 text-pink-400 mb-4 animate-bounce" />
+          <h2 className="text-2xl md:text-3xl font-black text-white text-center tracking-wide">
+            ¡SUELTA TU CANCIÓN AQUÍ!
+          </h2>
+          <p className="text-sm text-neutral-300 mt-2 text-center max-w-md">
+            Soporta archivos de audio (MP3, WAV, OGG, FLAC) o archivos .osu para generar el beatmap automáticamente.
+          </p>
+        </div>
+      )}
+
+      {/* Processing Audio Modal */}
+      {isProcessing && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex flex-col items-center justify-center p-6">
+          <Loader2 className="w-12 h-12 text-pink-500 animate-spin mb-4" />
+          <h3 className="text-lg font-bold text-white tracking-wide">{processingMsg}</h3>
+          <p className="text-xs text-neutral-400 mt-1">Generando notas y sincronización de ritmo...</p>
+        </div>
+      )}
+
       {/* Background Neon Ambient Glows */}
       <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-900/20 via-black to-black pointer-events-none" />
       <div className="fixed top-[-10%] right-[-10%] w-[500px] h-[500px] bg-pink-600/15 blur-[140px] rounded-full pointer-events-none animate-pulse" />
       <div className="fixed bottom-[-10%] left-[-10%] w-[500px] h-[500px] bg-purple-600/15 blur-[140px] rounded-full pointer-events-none" />
 
       {/* HEADER / NAVBAR */}
-      <header className="relative z-10 max-w-6xl w-full mx-auto flex items-center justify-between border-b border-white/10 pb-5 pt-2">
+      <header className="relative z-10 max-w-6xl w-full mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 border-b border-white/10 pb-5 pt-2">
         <div className="flex items-center gap-3.5">
           {/* Logo Matching Favicon */}
           <div className="relative w-11 h-11 rounded-2xl bg-gradient-to-br from-pink-500 via-purple-600 to-indigo-600 p-0.5 shadow-lg shadow-pink-500/25 flex items-center justify-center group cursor-pointer">
@@ -71,7 +160,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({
                 BEATMAP
               </h1>
               <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-pink-500/20 text-pink-300 border border-pink-500/30">
-                v1.0
+                v1.1
               </span>
             </div>
             <p className="text-[11px] font-medium tracking-wide text-neutral-400">
@@ -81,17 +170,34 @@ export const MainMenu: React.FC<MainMenuProps> = ({
         </div>
 
         {/* Action Controls */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5 flex-wrap">
+          {/* Audio MP3 Input */}
           <input
             type="file"
-            ref={fileInputRef}
-            accept=".osu"
+            ref={audioInputRef}
+            accept="audio/*,.mp3,.wav,.ogg,.flac,.m4a"
             className="hidden"
-            onChange={handleFileUpload}
+            onChange={handleAudioUpload}
           />
           <button
-            onClick={() => fileInputRef.current?.click()}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold bg-neutral-900/80 hover:bg-neutral-800 text-neutral-200 border border-neutral-700/60 hover:border-pink-500/50 transition-all cursor-pointer shadow-md backdrop-blur-md group"
+            onClick={() => audioInputRef.current?.click()}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold bg-gradient-to-r from-pink-600/90 to-purple-600/90 hover:from-pink-500 hover:to-purple-500 text-white border border-pink-400/40 transition-all cursor-pointer shadow-lg shadow-pink-500/20 backdrop-blur-md group active:scale-95"
+          >
+            <FileAudio className="w-4 h-4 text-pink-200 group-hover:scale-110 transition-transform" />
+            <span>CARGAR CANCIÓN (MP3)</span>
+          </button>
+
+          {/* Osu Input */}
+          <input
+            type="file"
+            ref={osuInputRef}
+            accept=".osu"
+            className="hidden"
+            onChange={handleOsuUpload}
+          />
+          <button
+            onClick={() => osuInputRef.current?.click()}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold bg-neutral-900/80 hover:bg-neutral-800 text-neutral-200 border border-neutral-700/60 hover:border-pink-500/50 transition-all cursor-pointer shadow-md backdrop-blur-md group active:scale-95"
           >
             <Upload className="w-4 h-4 text-pink-400 group-hover:scale-110 transition-transform" />
             <span>IMPORTAR .OSU</span>
@@ -152,6 +258,11 @@ export const MainMenu: React.FC<MainMenuProps> = ({
                           <span className="text-xs font-mono font-medium text-neutral-400 flex items-center gap-1">
                             <Zap className="w-3 h-3 text-amber-400 inline" /> {map.bpm} BPM
                           </span>
+                          {map.audioBuffer && (
+                            <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                              MP3 Personalizado
+                            </span>
+                          )}
                         </div>
                         <h3 className="text-base md:text-lg font-bold text-white group-hover:text-pink-300 transition-colors tracking-tight">
                           {map.title}
@@ -290,8 +401,9 @@ export const MainMenu: React.FC<MainMenuProps> = ({
 
       {/* FOOTER */}
       <footer className="relative z-10 max-w-6xl w-full mx-auto text-center text-xs text-neutral-400 border-t border-neutral-900/80 pt-4 pb-1">
-        Controles: Usa las teclas <kbd className="px-2 py-0.5 rounded-md bg-neutral-900 border border-neutral-700 text-neutral-200 font-mono font-bold shadow-sm">Z</kbd> y <kbd className="px-2 py-0.5 rounded-md bg-neutral-900 border border-neutral-700 text-neutral-200 font-mono font-bold shadow-sm">X</kbd> o el Clic del Mouse para golpear los círculos • Presiona <kbd className="px-2 py-0.5 rounded-md bg-neutral-900 border border-neutral-700 text-neutral-200 font-mono font-bold shadow-sm">ESC</kbd> para Pausar
+        Controles: Usa el Clic del Mouse para golpear los círculos • Presiona <kbd className="px-2 py-0.5 rounded-md bg-neutral-900 border border-neutral-700 text-neutral-200 font-mono font-bold shadow-sm">ESPACIO</kbd> para Pausar
       </footer>
     </div>
   );
 };
+
