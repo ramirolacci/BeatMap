@@ -204,6 +204,29 @@ export function generateBeatmapFromAudioBuffer(
     currentX = Math.max(minX, Math.min(maxX, Math.round(currentX)));
     currentY = Math.max(minY, Math.min(maxY, Math.round(currentY)));
 
+    // Enforce Minimum Distance (85px) to prevent spatial overlap with recent circles
+    const MIN_CIRCLE_SPACING = 85;
+    let attempts = 0;
+    while (attempts < 25) {
+      let overlaps = false;
+      for (let prevIdx = Math.max(0, hitObjects.length - 4); prevIdx < hitObjects.length; prevIdx++) {
+        const prevObj = hitObjects[prevIdx];
+        const dist = Math.hypot(currentX - prevObj.x, currentY - prevObj.y);
+        if (dist < MIN_CIRCLE_SPACING) {
+          overlaps = true;
+          break;
+        }
+      }
+
+      if (!overlaps) break; // Valid non-overlapping position found!
+
+      // Shift position if overlapping
+      const shiftAngle = (attempts * 0.8) + (index * 0.4);
+      currentX = Math.max(minX, Math.min(maxX, Math.round(currentX + Math.cos(shiftAngle) * 95)));
+      currentY = Math.max(minY, Math.min(maxY, Math.round(currentY + Math.sin(shiftAngle) * 80)));
+      attempts++;
+    }
+
     // Generate ONLY crisp single hit circles (Sliders completely disabled per user preference)
     hitObjects.push({
       id: `custom_c_${t}_${index}`,

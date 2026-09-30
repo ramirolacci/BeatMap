@@ -111,34 +111,21 @@ export class GameEngine {
   public handleTap(playfieldX: number, playfieldY: number): boolean {
     const { w50 } = this.getTimingWindows();
     const baseRadius = this.getCircleRadius();
-    const radius = baseRadius * 2.2; // Radio de impacto muy amplio y amigable (2.2x)
+    const hitRadius = baseRadius * 1.5; // Radio de impacto cómodo y preciso (1.5x)
 
-    const candidate = this.activeObjects.find(obj => {
-      if (this.processedObjectIds.has(obj.id)) return false;
+    // Filtrar objetos activos elegibles dentro de la ventana de tiempo, ordenados por tiempo ascendente
+    const candidates = this.activeObjects
+      .filter(obj => {
+        if (this.processedObjectIds.has(obj.id)) return false;
+        const timeDiff = Math.abs(this.currentTimeMs - obj.time);
+        return timeDiff <= w50;
+      })
+      .sort((a, b) => a.time - b.time);
 
-      // Para sliders activos durante su recorrido
-      if (obj.type === 'slider' && this.currentTimeMs >= obj.time - w50 && this.currentTimeMs <= obj.time + obj.duration + w50) {
-        const path = obj.path;
-        if (path && path.length > 1) {
-          const progress = Math.max(0, Math.min(1, (this.currentTimeMs - obj.time) / obj.duration));
-          const startPt = path[0];
-          const endPt = path[path.length - 1];
-          const ballX = startPt.x + (endPt.x - startPt.x) * progress;
-          const ballY = startPt.y + (endPt.y - startPt.y) * progress;
-
-          const distHead = Math.hypot(playfieldX - obj.x, playfieldY - obj.y);
-          const distBall = Math.hypot(playfieldX - ballX, playfieldY - ballY);
-          return distHead <= radius * 1.5 || distBall <= radius * 1.5;
-        }
-      }
-
-      const timeDiff = Math.abs(this.currentTimeMs - obj.time);
-      if (timeDiff > w50) return false;
-
-      const dx = playfieldX - obj.x;
-      const dy = playfieldY - obj.y;
-      const dist = Math.sqrt(dx * dx + dy * dy);
-      return dist <= radius;
+    // Buscar la nota más antigua activa que esté dentro del rango de clic
+    const candidate = candidates.find(obj => {
+      const dist = Math.hypot(playfieldX - obj.x, playfieldY - obj.y);
+      return dist <= hitRadius;
     });
 
     if (candidate) {
