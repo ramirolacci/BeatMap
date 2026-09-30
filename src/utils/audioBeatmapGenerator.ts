@@ -43,8 +43,20 @@ export function generateBeatmapFromAudioBuffer(
     bassEnergies[f] = Math.sqrt(bassSum / frameSize);
   }
 
-  // Detect Peak Onsets using combined Bass + Total Energy Transients
-  const rawOnsets: number[] = [];
+  // Seeded Random Helper for song-unique, repeatable pattern generation
+  let seed = 0;
+  for (let i = 0; i < fileName.length; i++) {
+    seed = ((seed << 5) - seed + fileName.charCodeAt(i)) | 0;
+  }
+  seed = Math.abs(seed) || 123456;
+
+  function seededRandom() {
+    seed = (seed * 9301 + 49297) % 233280;
+    return seed / 233280;
+  }
+
+  // Map onset times with their corresponding energy intensity ratio
+  const rawOnsetEntries: { timeMs: number; energyRatio: number }[] = [];
   const windowHalf = 25; // ~250ms local average window
   const minIntervalMs = difficulty === 'Expert' ? 150 : difficulty === 'Hard' ? 220 : 340;
   let lastOnsetMs = 1200;
@@ -63,14 +75,22 @@ export function generateBeatmapFromAudioBuffer(
     const avgBass = localBassSum / (windowHalf * 2 + 1);
     const avgTotal = localTotalSum / (windowHalf * 2 + 1);
 
+    const bassRatio = avgBass > 0 ? bassEnergies[f] / avgBass : 1;
+    const totalRatio = avgTotal > 0 ? totalEnergies[f] / avgTotal : 1;
+
     const isBassPeak = bassEnergies[f] > avgBass * 1.35 && bassEnergies[f] > bassEnergies[f - 1];
     const isTotalPeak = totalEnergies[f] > avgTotal * 1.40 && totalEnergies[f] > totalEnergies[f - 1];
 
     if ((isBassPeak || isTotalPeak) && (timeMs - lastOnsetMs) >= minIntervalMs) {
-      rawOnsets.push(Math.round(timeMs));
+      rawOnsetEntries.push({
+        timeMs: Math.round(timeMs),
+        energyRatio: Math.max(bassRatio, totalRatio)
+      });
       lastOnsetMs = timeMs;
     }
   }
+
+  const rawOnsets = rawOnsetEntries.map(e => e.timeMs);
 
   // --- BPM & BEAT-GRID QUANTIZATION (RHYTHMIC SNAP) ---
   // 1. Calculate onset intervals to find dominant BPM
@@ -118,33 +138,37 @@ export function generateBeatmapFromAudioBuffer(
     }
   }
 
-  // 3. Snap Onsets to Beat Grid (1/2 or 1/1 beats)
-  const snappedTimesSet = new Set<number>();
+  // 3. Snap Onsets to Beat Grid (1/2 or 1/1 beats) with Energy Preservation
+  const snappedTimesSet = new Map<number, number>(); // snappedTime -> energyRatio
   const hitObjects: HitObject[] = [];
 
-  rawOnsets.forEach((rawT) => {
-    // Find nearest half-beat grid point
-    const gridIndex = Math.round((rawT - bestOffset) / halfBeatLen);
+  rawOnsetEntries.forEach((entry) => {
+    const gridIndex = Math.round((entry.timeMs - bestOffset) / halfBeatLen);
     const snappedTime = Math.round(bestOffset + gridIndex * halfBeatLen);
 
-    if (snappedTime >= 1000 && snappedTime <= totalDurationMs - 1500 && !snappedTimesSet.has(snappedTime)) {
-      snappedTimesSet.add(snappedTime);
+    if (snappedTime >= 1000 && snappedTime <= totalDurationMs - 1500) {
+      const existingEnergy = snappedTimesSet.get(snappedTime) || 0;
+      if (entry.energyRatio > existingEnergy) {
+        snappedTimesSet.set(snappedTime, entry.energyRatio);
+      }
     }
   });
 
-  const sortedTimes = Array.from(snappedTimesSet).sort((a, b) => a - b);
+  const sortedTimes = Array.from(snappedTimesSet.keys()).sort((a, b) => a - b);
 
   // If too few notes detected, fill grid evenly
   if (sortedTimes.length < 20) {
     for (let t = bestOffset; t < totalDurationMs - 2000; t += halfBeatLen) {
-      if (!snappedTimesSet.has(Math.round(t))) {
-        sortedTimes.push(Math.round(t));
+      const roundedT = Math.round(t);
+      if (!snappedTimesSet.has(roundedT)) {
+        snappedTimesSet.set(roundedT, 1.0);
+        sortedTimes.push(roundedT);
       }
     }
     sortedTimes.sort((a, b) => a - b);
   }
 
-  // --- GEOMETRIC PATTERN GENERATOR IN OSU! PLAYFIELD (512x384) ---
+  // --- AUDIO ENERGY DRIVEN GEOMETRIC PATTERN GENERATOR (512x384) ---
   const minX = 64, maxX = 448;
   const minY = 48, maxY = 336;
   const centerX = 256, centerY = 192;
@@ -158,46 +182,58 @@ export function generateBeatmapFromAudioBuffer(
 
   sortedTimes.forEach((t, index) => {
     const prevT = sortedTimes[index - 1];
+    const energyRatio = snappedTimesSet.get(t) || 1.0;
+    const isHighEnergy = energyRatio > 1.45; // Drop / Chorus peak
+
     const isNewCombo = index === 0 || (index > 0 && (index % 8 === 0 || (prevT && (t - prevT) > beatLen * 1.5)));
 
     if (isNewCombo) {
       comboNum = 1;
       comboColorIndex = (comboColorIndex + 1) % 4;
-      patternType = Math.floor(Math.random() * 4);
+      // High energy sections select dramatic jump/star patterns, lower energy selects flow/stream
+      if (isHighEnergy) {
+        patternType = seededRandom() > 0.5 ? 1 : 3; // Corner Jumps or Wide Arc Star
+      } else {
+        patternType = Math.floor(seededRandom() * 4);
+      }
       patternStep = 0;
     } else {
       comboNum++;
       patternStep++;
     }
 
-    // Pattern shapes
+    // Pattern shapes dynamically influenced by audio energy
+    const scaleFactor = Math.min(1.5, Math.max(0.75, energyRatio));
+
     if (patternType === 0) {
       // Ring circle around playfield center
       const angle = (patternStep / 6) * Math.PI * 2;
-      const radius = 100 + Math.sin(index * 0.5) * 20;
+      const radius = (90 + Math.sin(index * 0.5) * 25) * scaleFactor;
       currentX = centerX + Math.cos(angle) * radius;
       currentY = centerY + Math.sin(angle) * radius;
     } else if (patternType === 1) {
-      // Jumps between 4 screen corners
+      // Jumps between screen corners
       const corners = [
-        { x: minX + 40, y: minY + 40 },
-        { x: maxX - 40, y: maxY - 40 },
-        { x: minX + 40, y: maxY - 40 },
-        { x: maxX - 40, y: minY + 40 }
+        { x: minX + 35, y: minY + 35 },
+        { x: maxX - 35, y: maxY - 35 },
+        { x: minX + 35, y: maxY - 35 },
+        { x: maxX - 35, y: minY + 35 }
       ];
       const c = corners[patternStep % 4];
-      currentX = c.x + (Math.random() - 0.5) * 15;
-      currentY = c.y + (Math.random() - 0.5) * 15;
+      const jitter = (seededRandom() - 0.5) * 25 * scaleFactor;
+      currentX = c.x + jitter;
+      currentY = c.y + jitter;
     } else if (patternType === 2) {
       // Flowing Stream Line
       const dirX = (index % 4 < 2) ? 1 : -1;
-      currentX = Math.max(minX, Math.min(maxX, currentX + dirX * 45));
-      currentY = Math.max(minY, Math.min(maxY, currentY + Math.sin(index) * 35));
+      const stepDist = 45 * scaleFactor;
+      currentX = Math.max(minX, Math.min(maxX, currentX + dirX * stepDist));
+      currentY = Math.max(minY, Math.min(maxY, currentY + Math.sin(index) * 40 * scaleFactor));
     } else {
-      // Curved Arc
-      const arcAngle = (patternStep * 0.7) + (index * 0.15);
-      currentX = centerX + Math.cos(arcAngle) * 130;
-      currentY = centerY + Math.sin(arcAngle) * 95;
+      // Curved Arc Star
+      const arcAngle = (patternStep * 0.75) + (index * 0.18);
+      currentX = centerX + Math.cos(arcAngle) * (115 * scaleFactor);
+      currentY = centerY + Math.sin(arcAngle) * (85 * scaleFactor);
     }
 
     // Clamp coordinates strictly within playfield boundaries
@@ -227,7 +263,7 @@ export function generateBeatmapFromAudioBuffer(
       attempts++;
     }
 
-    // Generate ONLY crisp single hit circles (Sliders completely disabled per user preference)
+    // Generate ONLY crisp single hit circles
     hitObjects.push({
       id: `custom_c_${t}_${index}`,
       type: 'circle',

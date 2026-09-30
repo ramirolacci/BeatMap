@@ -271,7 +271,7 @@ export function App() {
       )}
 
       {/* Pantalla de Juego */}
-      {(gameState === 'playing' || gameState === 'paused') && selectedBeatmap && (
+      {(gameState === 'playing' || gameState === 'paused' || gameState === 'results') && selectedBeatmap && (
         <div className="relative w-full h-full">
           <CanvasPlayfield
             visibleObjects={visibleObjects}
@@ -312,23 +312,22 @@ export function App() {
               }}
             />
           )}
-        </div>
-      )}
 
-      {/* Pantalla de Resultados */}
-      {gameState === 'results' && selectedBeatmap && (
-        <ResultsScreen
-          scoreState={scoreState}
-          beatmap={selectedBeatmap}
-          onRetry={() => {
-            audioEngine.stop();
-            handleStartGame();
-          }}
-          onMenu={() => {
-            audioEngine.stop();
-            setGameState('menu');
-          }}
-        />
+          {gameState === 'results' && (
+            <ResultsScreen
+              scoreState={scoreState}
+              beatmap={selectedBeatmap}
+              onRetry={() => {
+                audioEngine.stop();
+                handleStartGame();
+              }}
+              onMenu={() => {
+                audioEngine.stop();
+                setGameState('menu');
+              }}
+            />
+          )}
+        </div>
       )}
     </div>
   );

@@ -81,9 +81,9 @@ export const ResultsScreen: React.FC<ResultsScreenProps> = ({
   }, [grade]);
 
   return (
-    <div className="relative w-full h-full min-h-screen bg-[#060609] text-white flex items-center justify-center p-6 select-none overflow-hidden">
+    <div className="absolute inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-6 select-none overflow-hidden text-white">
       {/* Background ambient glow */}
-      <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-purple-900/20 via-black to-black pointer-events-none" />
+      <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-purple-900/20 via-black/30 to-black/60 pointer-events-none" />
 
       <div ref={containerRef} className="relative z-10 w-full max-w-2xl bg-neutral-900/80 border border-neutral-800 rounded-3xl p-8 backdrop-blur-xl shadow-2xl flex flex-col gap-6">
         
