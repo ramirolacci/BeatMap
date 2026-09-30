@@ -3,7 +3,7 @@ import type { GameState, Beatmap, GameSettings, ScoreState, ActiveJudgement, Hit
 import { GameEngine } from './engine/gameEngine';
 import { audioEngine } from './audio/audioEngine';
 import { loadDefaultBeatmaps } from './utils/defaultSongLoader';
-import { Loader2 } from 'lucide-react';
+import { Disc } from 'lucide-react';
 
 import { MainMenu } from './components/MainMenu';
 import { CanvasPlayfield } from './components/CanvasPlayfield';
@@ -15,7 +15,6 @@ export function App() {
   const [beatmaps, setBeatmaps] = useState<Beatmap[]>([]);
   const [selectedBeatmap, setSelectedBeatmap] = useState<Beatmap | null>(null);
   const [isLoadingDefaults, setIsLoadingDefaults] = useState(true);
-  const [loadingMsg, setLoadingMsg] = useState('Inicializando canciones por defecto...');
 
   const [gameState, setGameState] = useState<GameState>('menu');
 
@@ -66,9 +65,7 @@ export function App() {
     let isMounted = true;
     async function initDefaults() {
       try {
-        const maps = await loadDefaultBeatmaps((msg) => {
-          if (isMounted) setLoadingMsg(msg);
-        });
+        const maps = await loadDefaultBeatmaps();
 
         if (isMounted) {
           if (maps.length > 0) {
@@ -236,12 +233,27 @@ export function App() {
 
   return (
     <div className="relative w-screen h-screen bg-black overflow-hidden select-none">
-      {/* Indicador de Carga Inicial de Canciones por Defecto */}
+      {/* Indicador de Carga Inicial Estilizado */}
       {isLoadingDefaults && (
-        <div className="fixed inset-0 z-50 bg-[#050508] flex flex-col items-center justify-center p-6 text-white selection:bg-pink-500">
-          <Loader2 className="w-12 h-12 text-pink-500 animate-spin mb-4 shadow-[0_0_20px_#ec4899]" />
-          <h2 className="text-xl font-black tracking-wider text-white">CARGANDO MÚSICA POR DEFECTO</h2>
-          <p className="text-xs font-mono text-neutral-400 mt-2">{loadingMsg}</p>
+        <div className="fixed inset-0 z-50 bg-[#050508] flex flex-col items-center justify-center p-6 selection:bg-pink-500 overflow-hidden">
+          {/* Ambient Glows */}
+          <div className="absolute w-72 h-72 rounded-full bg-pink-600/10 blur-[100px] animate-pulse pointer-events-none" />
+          <div className="absolute w-72 h-72 rounded-full bg-purple-600/10 blur-[100px] pointer-events-none" />
+
+          {/* Minimal Stylized Spinner */}
+          <div className="relative w-20 h-20 flex items-center justify-center">
+            {/* Spinning Outer Gradient Ring */}
+            <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-pink-500 border-r-purple-500 animate-spin" />
+            <div className="absolute inset-1 rounded-full border border-pink-500/20" />
+
+            {/* Inner Vinyl Disc Icon */}
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-pink-500 via-purple-600 to-indigo-600 p-0.5 shadow-[0_0_30px_rgba(236,72,153,0.4)] flex items-center justify-center">
+              <div className="w-full h-full bg-[#0b0b12] rounded-[14px] flex items-center justify-center relative overflow-hidden">
+                <Disc className="w-6 h-6 text-pink-400 animate-spin-slow" />
+                <div className="absolute w-2 h-2 rounded-full bg-white shadow-[0_0_8px_#ffffff]" />
+              </div>
+            </div>
+          </div>
         </div>
       )}
 

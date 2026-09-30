@@ -41,34 +41,29 @@ export const MainMenu: React.FC<MainMenuProps> = ({
     const ctx = gsap.context(() => {
       // 1. Header slide down
       if (headerRef.current) {
-        gsap.from(headerRef.current, {
-          y: -40,
-          opacity: 0,
-          duration: 0.8,
-          ease: 'power3.out'
-        });
+        gsap.fromTo(
+          headerRef.current,
+          { y: -40, opacity: 0 },
+          { y: 0, opacity: 1, duration: 0.8, ease: 'power3.out', clearProps: 'all' }
+        );
       }
 
       // 2. Track selector list slide in from left
       if (trackListRef.current) {
-        gsap.from(trackListRef.current.children, {
-          x: -50,
-          opacity: 0,
-          duration: 0.6,
-          stagger: 0.08,
-          ease: 'power3.out'
-        });
+        gsap.fromTo(
+          trackListRef.current.children,
+          { x: -50, opacity: 0 },
+          { x: 0, opacity: 1, duration: 0.6, stagger: 0.08, ease: 'power3.out', clearProps: 'all' }
+        );
       }
 
       // 3. Right Details Panel slide in from right
       if (detailsPanelRef.current) {
-        gsap.from(detailsPanelRef.current, {
-          x: 50,
-          opacity: 0,
-          duration: 0.7,
-          ease: 'power3.out',
-          delay: 0.15
-        });
+        gsap.fromTo(
+          detailsPanelRef.current,
+          { x: 50, opacity: 0 },
+          { x: 0, opacity: 1, duration: 0.7, ease: 'power3.out', delay: 0.15, clearProps: 'all' }
+        );
       }
     });
 

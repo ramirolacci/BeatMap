@@ -54,7 +54,7 @@ export const ResultsScreen: React.FC<ResultsScreenProps> = ({
         gsap.fromTo(
           containerRef.current,
           { scale: 0.9, opacity: 0, y: 20 },
-          { scale: 1, opacity: 1, y: 0, duration: 0.5, ease: 'power3.out' }
+          { scale: 1, opacity: 1, y: 0, duration: 0.5, ease: 'power3.out', clearProps: 'all' }
         );
       }
 
@@ -63,20 +63,17 @@ export const ResultsScreen: React.FC<ResultsScreenProps> = ({
         gsap.fromTo(
           gradeRef.current,
           { scale: 3, opacity: 0, rotate: -15 },
-          { scale: 1, opacity: 1, rotate: 0, duration: 0.65, ease: 'back.out(1.8)', delay: 0.15 }
+          { scale: 1, opacity: 1, rotate: 0, duration: 0.65, ease: 'back.out(1.8)', delay: 0.15, clearProps: 'all' }
         );
       }
 
       // 3. Stats cards stagger fade
       if (statsRef.current) {
-        gsap.from(statsRef.current.children, {
-          y: 25,
-          opacity: 0,
-          stagger: 0.08,
-          duration: 0.45,
-          ease: 'power3.out',
-          delay: 0.25
-        });
+        gsap.fromTo(
+          statsRef.current.children,
+          { y: 25, opacity: 0 },
+          { y: 0, opacity: 1, stagger: 0.08, duration: 0.45, ease: 'power3.out', delay: 0.25, clearProps: 'all' }
+        );
       }
     });
 
