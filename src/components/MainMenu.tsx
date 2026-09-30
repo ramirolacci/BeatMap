@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
 import type { Beatmap, GameSettings } from '../types/game';
-import { Play, Volume2, Upload, Settings, Music, Disc } from 'lucide-react';
+import { Play, Volume2, Upload, Music, Disc, Sparkles, SlidersHorizontal, Zap } from 'lucide-react';
 import { parseOsuFile } from '../utils/osuParser';
 
 interface MainMenuProps {
@@ -36,30 +36,52 @@ export const MainMenu: React.FC<MainMenuProps> = ({
     }
   };
 
-  return (
-    <div className="relative w-full h-full min-h-screen bg-[#08080c] text-white flex flex-col justify-between p-6 md:p-10 font-sans overflow-y-auto">
-      {/* Fondo Decorativo Gradiente */}
-      <div className="absolute inset-0 bg-gradient-to-br from-indigo-950/20 via-black to-neutral-950 pointer-events-none" />
-      <div className="absolute top-0 right-0 w-96 h-96 bg-purple-600/10 blur-[120px] rounded-full pointer-events-none" />
-      <div className="absolute bottom-0 left-0 w-96 h-96 bg-blue-600/10 blur-[120px] rounded-full pointer-events-none" />
+  const getDifficultyBadge = (version: string) => {
+    const v = version.toLowerCase();
+    if (v.includes('experto') || v.includes('expert')) {
+      return { label: version, color: 'from-rose-500 to-red-600 text-rose-200 border-rose-500/40 shadow-rose-500/20' };
+    }
+    if (v.includes('insano') || v.includes('insane')) {
+      return { label: version, color: 'from-purple-500 to-indigo-600 text-purple-200 border-purple-500/40 shadow-purple-500/20' };
+    }
+    return { label: version, color: 'from-pink-500 to-amber-500 text-pink-200 border-pink-500/40 shadow-pink-500/20' };
+  };
 
-      {/* ENCABEZADO */}
-      <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-neutral-800/80 pb-6">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-pink-500 to-indigo-500 flex items-center justify-center shadow-lg shadow-pink-500/20">
-            <Disc className="w-6 h-6 text-white animate-spin-slow" />
+  return (
+    <div className="relative w-full h-full min-h-screen bg-[#050508] text-white flex flex-col justify-between p-4 sm:p-6 md:p-8 font-sans overflow-y-auto selection:bg-pink-500 selection:text-white">
+      {/* Background Neon Ambient Glows */}
+      <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-900/20 via-black to-black pointer-events-none" />
+      <div className="fixed top-[-10%] right-[-10%] w-[500px] h-[500px] bg-pink-600/15 blur-[140px] rounded-full pointer-events-none animate-pulse" />
+      <div className="fixed bottom-[-10%] left-[-10%] w-[500px] h-[500px] bg-purple-600/15 blur-[140px] rounded-full pointer-events-none" />
+
+      {/* HEADER / NAVBAR */}
+      <header className="relative z-10 max-w-6xl w-full mx-auto flex items-center justify-between border-b border-white/10 pb-5 pt-2">
+        <div className="flex items-center gap-3.5">
+          {/* Logo Matching Favicon */}
+          <div className="relative w-11 h-11 rounded-2xl bg-gradient-to-br from-pink-500 via-purple-600 to-indigo-600 p-0.5 shadow-lg shadow-pink-500/25 flex items-center justify-center group cursor-pointer">
+            <div className="w-full h-full bg-[#0b0b12] rounded-[14px] flex items-center justify-center relative overflow-hidden">
+              <Disc className="w-6 h-6 text-pink-400 group-hover:rotate-180 transition-transform duration-700" />
+              <div className="absolute w-2 h-2 rounded-full bg-white shadow-[0_0_8px_#ffffff]" />
+            </div>
           </div>
+
           <div>
-            <h1 className="text-2xl md:text-3xl font-black tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white via-neutral-200 to-neutral-400">
-              BEATMAP <span className="text-pink-500 font-mono text-xl">v1.0</span>
-            </h1>
-            <p className="text-xs text-neutral-400">Motor de Juego de Ritmo por Círculos</p>
+            <div className="flex items-center gap-2">
+              <h1 className="text-2xl md:text-3xl font-black tracking-tight text-white flex items-center gap-1.5">
+                BEATMAP
+              </h1>
+              <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-pink-500/20 text-pink-300 border border-pink-500/30">
+                v1.0
+              </span>
+            </div>
+            <p className="text-[11px] font-medium tracking-wide text-neutral-400">
+              Juego de Ritmo por Círculos
+            </p>
           </div>
         </div>
 
-        {/* Acciones del Menú */}
-        <div className="flex flex-wrap items-center gap-3">
-          {/* Importar Archivo .osu */}
+        {/* Action Controls */}
+        <div className="flex items-center gap-3">
           <input
             type="file"
             ref={fileInputRef}
@@ -69,61 +91,89 @@ export const MainMenu: React.FC<MainMenuProps> = ({
           />
           <button
             onClick={() => fileInputRef.current?.click()}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold bg-neutral-900 hover:bg-neutral-800 text-neutral-300 border border-neutral-800 transition-colors cursor-pointer"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold bg-neutral-900/80 hover:bg-neutral-800 text-neutral-200 border border-neutral-700/60 hover:border-pink-500/50 transition-all cursor-pointer shadow-md backdrop-blur-md group"
           >
-            <Upload className="w-4 h-4 text-neutral-400" />
+            <Upload className="w-4 h-4 text-pink-400 group-hover:scale-110 transition-transform" />
             <span>IMPORTAR .OSU</span>
           </button>
         </div>
-      </div>
+      </header>
 
-      {/* CONTENIDO PRINCIPAL: Selección de Canciones y Ajustes */}
-      <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 my-8 items-start">
-        {/* Columna Izquierda: Lista de Canciones */}
-        <div className="lg:col-span-7 flex flex-col gap-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-sm font-bold uppercase tracking-wider text-neutral-400 flex items-center gap-2">
+      {/* MAIN CONTENT GRID */}
+      <main className="relative z-10 max-w-6xl w-full mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6 my-6 items-start">
+        
+        {/* Left Column: Track Selector */}
+        <div className="lg:col-span-7 flex flex-col gap-3.5">
+          <div className="flex items-center justify-between px-1">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-neutral-400 flex items-center gap-2">
               <Music className="w-4 h-4 text-pink-400" /> Seleccionar Canción
             </h2>
-            <span className="text-xs text-neutral-500">{beatmaps.length} Pistas Disponibles</span>
+            <span className="text-xs text-neutral-400 font-mono font-medium">
+              {beatmaps.length} Canciones Disponibles
+            </span>
           </div>
 
           <div className="flex flex-col gap-3">
             {beatmaps.map((map) => {
               const isSelected = map.id === selectedBeatmap.id;
+              const badge = getDifficultyBadge(map.version);
+
               return (
                 <div
                   key={map.id}
                   onClick={() => onSelectBeatmap(map)}
-                  className={`group relative p-4 md:p-5 rounded-2xl border transition-all duration-200 cursor-pointer overflow-hidden ${
+                  className={`group relative p-4 md:p-5 rounded-2xl border transition-all duration-300 cursor-pointer overflow-hidden ${
                     isSelected
-                      ? 'bg-neutral-900/90 border-pink-500/60 shadow-[0_0_25px_rgba(236,72,153,0.15)] scale-[1.01]'
-                      : 'bg-neutral-950/60 border-neutral-800/80 hover:bg-neutral-900/50 hover:border-neutral-700'
+                      ? 'bg-neutral-900/90 border-pink-500/70 shadow-[0_0_30px_rgba(236,72,153,0.18)] scale-[1.01]'
+                      : 'bg-neutral-950/40 border-neutral-800/80 hover:bg-neutral-900/60 hover:border-neutral-700'
                   }`}
                 >
-                  <div className="flex items-center justify-between relative z-10">
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-mono text-xs font-bold px-2 py-0.5 rounded bg-pink-500/20 text-pink-300 border border-pink-500/30">
-                          {map.version}
-                        </span>
-                        <span className="text-xs text-neutral-400 font-mono">{map.bpm} BPM</span>
+                  {/* Active Card Accent Bar */}
+                  {isSelected && (
+                    <div className="absolute top-0 bottom-0 left-0 w-1.5 bg-gradient-to-b from-pink-500 to-indigo-500 shadow-[0_0_12px_#ec4899]" />
+                  )}
+
+                  <div className="flex items-center justify-between gap-4 relative z-10 pl-1">
+                    <div className="flex items-center gap-4">
+                      {/* Vinyl Disc Thumbnail */}
+                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center border transition-all ${
+                        isSelected 
+                          ? 'bg-gradient-to-br from-pink-500/20 to-indigo-500/20 border-pink-500/40 shadow-inner' 
+                          : 'bg-neutral-900 border-neutral-800'
+                      }`}>
+                        <Disc className={`w-6 h-6 ${isSelected ? 'text-pink-400 animate-spin-slow' : 'text-neutral-500'}`} />
                       </div>
-                      <h3 className="text-lg font-bold text-white mt-1 group-hover:text-pink-300 transition-colors">
-                        {map.title}
-                      </h3>
-                      <p className="text-xs text-neutral-400">{map.artist} • Creado por {map.creator}</p>
+
+                      <div>
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className={`font-mono text-[10px] font-bold px-2 py-0.5 rounded-full bg-gradient-to-r border shadow-sm ${badge.color}`}>
+                            {badge.label}
+                          </span>
+                          <span className="text-xs font-mono font-medium text-neutral-400 flex items-center gap-1">
+                            <Zap className="w-3 h-3 text-amber-400 inline" /> {map.bpm} BPM
+                          </span>
+                        </div>
+                        <h3 className="text-base md:text-lg font-bold text-white group-hover:text-pink-300 transition-colors tracking-tight">
+                          {map.title}
+                        </h3>
+                        <p className="text-xs text-neutral-400">
+                          {map.artist} • Mapeado por <span className="text-neutral-300 font-medium">{map.creator}</span>
+                        </p>
+                      </div>
                     </div>
 
-                    <div className="flex items-center gap-3">
-                      <div className="text-right hidden sm:block">
-                        <div className="text-xs text-neutral-400 font-mono">AR {map.ar} • CS {map.cs}</div>
-                        <div className="text-[10px] text-neutral-500">{map.hitObjects.length} Objetos</div>
+                    <div className="flex items-center gap-4">
+                      <div className="text-right hidden sm:block font-mono">
+                        <div className="text-xs font-semibold text-neutral-300">AR {map.ar} • CS {map.cs}</div>
+                        <div className="text-[10px] text-neutral-400">{map.hitObjects.length} Objetos</div>
                       </div>
 
-                      {isSelected && (
-                        <div className="w-3 h-3 rounded-full bg-pink-500 shadow-[0_0_10px_#ec4899]" />
-                      )}
+                      {/* Selection Radio Circle */}
+                      <div className={`w-5 h-5 rounded-full border flex items-center justify-center transition-all ${
+                        isSelected ? 'border-pink-500 bg-pink-500/20 shadow-[0_0_10px_#ec4899]' : 'border-neutral-700 bg-neutral-900'
+                      }`}>
+                        {isSelected && <div className="w-2 h-2 rounded-full bg-pink-400 shadow-[0_0_6px_#ec4899]" />}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -132,41 +182,67 @@ export const MainMenu: React.FC<MainMenuProps> = ({
           </div>
         </div>
 
-        {/* Columna Derecha: Detalle de Canción y Volumen */}
-        <div className="lg:col-span-5 bg-neutral-900/60 border border-neutral-800/80 rounded-2xl p-6 backdrop-blur-md flex flex-col justify-between gap-6">
+        {/* Right Column: Song Stats & Control Panel */}
+        <div className="lg:col-span-5 bg-neutral-900/40 border border-neutral-800/90 rounded-3xl p-6 backdrop-blur-xl flex flex-col justify-between gap-6 shadow-2xl relative overflow-hidden">
+          {/* Glowing Top Accent Line */}
+          <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-pink-500/60 to-transparent" />
+
           <div>
-            <h3 className="text-xs font-bold uppercase tracking-wider text-neutral-400 flex items-center gap-2 mb-4">
-              <Settings className="w-4 h-4 text-indigo-400" /> Detalles de Canción y Audio
+            <h3 className="text-xs font-bold uppercase tracking-wider text-neutral-400 flex items-center gap-2 mb-5">
+              <SlidersHorizontal className="w-4 h-4 text-purple-400" /> Detalles de Canción y Audio
             </h3>
 
-            {/* Atributos de Dificultad */}
+            {/* Atributos Visuales de Dificultad */}
             <div className="grid grid-cols-2 gap-3 mb-6">
-              <div className="bg-black/40 border border-neutral-800 p-3 rounded-xl">
-                <div className="text-[10px] uppercase text-neutral-400 font-bold">Aproximación (AR)</div>
-                <div className="text-xl font-mono font-bold text-white">{selectedBeatmap.ar}</div>
+              <div className="bg-black/40 border border-neutral-800/80 p-3.5 rounded-2xl hover:border-neutral-700 transition-colors">
+                <div className="flex justify-between items-center text-[10px] uppercase font-bold text-neutral-400 mb-1">
+                  <span>Aproximación (AR)</span>
+                  <span className="text-pink-400">{selectedBeatmap.ar}</span>
+                </div>
+                <div className="h-1.5 w-full bg-neutral-800 rounded-full overflow-hidden">
+                  <div className="h-full bg-gradient-to-r from-pink-500 to-rose-400 rounded-full" style={{ width: `${(selectedBeatmap.ar / 10) * 100}%` }} />
+                </div>
               </div>
-              <div className="bg-black/40 border border-neutral-800 p-3 rounded-xl">
-                <div className="text-[10px] uppercase text-neutral-400 font-bold">Tamaño Círculo (CS)</div>
-                <div className="text-xl font-mono font-bold text-white">{selectedBeatmap.cs}</div>
+
+              <div className="bg-black/40 border border-neutral-800/80 p-3.5 rounded-2xl hover:border-neutral-700 transition-colors">
+                <div className="flex justify-between items-center text-[10px] uppercase font-bold text-neutral-400 mb-1">
+                  <span>Tamaño Círculo (CS)</span>
+                  <span className="text-purple-400">{selectedBeatmap.cs}</span>
+                </div>
+                <div className="h-1.5 w-full bg-neutral-800 rounded-full overflow-hidden">
+                  <div className="h-full bg-gradient-to-r from-purple-500 to-indigo-400 rounded-full" style={{ width: `${(selectedBeatmap.cs / 10) * 100}%` }} />
+                </div>
               </div>
-              <div className="bg-black/40 border border-neutral-800 p-3 rounded-xl">
-                <div className="text-[10px] uppercase text-neutral-400 font-bold">Dificultad (OD)</div>
-                <div className="text-xl font-mono font-bold text-white">{selectedBeatmap.od}</div>
+
+              <div className="bg-black/40 border border-neutral-800/80 p-3.5 rounded-2xl hover:border-neutral-700 transition-colors">
+                <div className="flex justify-between items-center text-[10px] uppercase font-bold text-neutral-400 mb-1">
+                  <span>Dificultad (OD)</span>
+                  <span className="text-sky-400">{selectedBeatmap.od}</span>
+                </div>
+                <div className="h-1.5 w-full bg-neutral-800 rounded-full overflow-hidden">
+                  <div className="h-full bg-gradient-to-r from-sky-500 to-blue-400 rounded-full" style={{ width: `${(selectedBeatmap.od / 10) * 100}%` }} />
+                </div>
               </div>
-              <div className="bg-black/40 border border-neutral-800 p-3 rounded-xl">
-                <div className="text-[10px] uppercase text-neutral-400 font-bold">Drenaje Vida (HP)</div>
-                <div className="text-xl font-mono font-bold text-white">{selectedBeatmap.hpDrain}</div>
+
+              <div className="bg-black/40 border border-neutral-800/80 p-3.5 rounded-2xl hover:border-neutral-700 transition-colors">
+                <div className="flex justify-between items-center text-[10px] uppercase font-bold text-neutral-400 mb-1">
+                  <span>Drenaje Vida (HP)</span>
+                  <span className="text-emerald-400">{selectedBeatmap.hpDrain}</span>
+                </div>
+                <div className="h-1.5 w-full bg-neutral-800 rounded-full overflow-hidden">
+                  <div className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full" style={{ width: `${(selectedBeatmap.hpDrain / 10) * 100}%` }} />
+                </div>
               </div>
             </div>
 
-            {/* Controles de Volumen */}
-            <div className="flex flex-col gap-4 border-t border-neutral-800 pt-4">
-              <div className="flex flex-col gap-1.5">
+            {/* Controles de Volumen Estilizados */}
+            <div className="flex flex-col gap-4 border-t border-neutral-800/80 pt-5">
+              <div className="flex flex-col gap-2">
                 <div className="flex justify-between text-xs">
-                  <span className="text-neutral-400 flex items-center gap-1.5">
-                    <Volume2 className="w-3.5 h-3.5" /> Volumen de Música
+                  <span className="text-neutral-300 font-medium flex items-center gap-1.5">
+                    <Volume2 className="w-4 h-4 text-pink-400" /> Volumen de Música
                   </span>
-                  <span className="font-mono text-white font-bold">{Math.round(settings.musicVolume * 100)}%</span>
+                  <span className="font-mono text-pink-300 font-bold">{Math.round(settings.musicVolume * 100)}%</span>
                 </div>
                 <input
                   type="range"
@@ -175,16 +251,16 @@ export const MainMenu: React.FC<MainMenuProps> = ({
                   step="0.05"
                   value={settings.musicVolume}
                   onChange={(e) => onUpdateSettings({ musicVolume: parseFloat(e.target.value) })}
-                  className="w-full accent-pink-500 cursor-pointer"
+                  className="w-full accent-pink-500 cursor-pointer h-1.5 rounded-lg bg-neutral-800"
                 />
               </div>
 
-              <div className="flex flex-col gap-1.5">
+              <div className="flex flex-col gap-2">
                 <div className="flex justify-between text-xs">
-                  <span className="text-neutral-400 flex items-center gap-1.5">
-                    <Volume2 className="w-3.5 h-3.5" /> Volumen de Efectos (Hitsounds)
+                  <span className="text-neutral-300 font-medium flex items-center gap-1.5">
+                    <Volume2 className="w-4 h-4 text-purple-400" /> Volumen de Efectos (Hitsounds)
                   </span>
-                  <span className="font-mono text-white font-bold">{Math.round(settings.hitsoundVolume * 100)}%</span>
+                  <span className="font-mono text-purple-300 font-bold">{Math.round(settings.hitsoundVolume * 100)}%</span>
                 </div>
                 <input
                   type="range"
@@ -193,27 +269,29 @@ export const MainMenu: React.FC<MainMenuProps> = ({
                   step="0.05"
                   value={settings.hitsoundVolume}
                   onChange={(e) => onUpdateSettings({ hitsoundVolume: parseFloat(e.target.value) })}
-                  className="w-full accent-pink-500 cursor-pointer"
+                  className="w-full accent-purple-500 cursor-pointer h-1.5 rounded-lg bg-neutral-800"
                 />
               </div>
             </div>
           </div>
 
-          {/* BOTÓN INICIAR JUEGO */}
+          {/* BOTÓN COMENZAR */}
           <button
             onClick={onStartGame}
-            className="w-full py-4 rounded-xl font-black text-lg text-white bg-gradient-to-r from-pink-500 via-rose-500 to-indigo-600 hover:from-pink-400 hover:to-indigo-500 shadow-[0_0_30px_rgba(236,72,153,0.3)] transition-all cursor-pointer flex items-center justify-center gap-3 active:scale-[0.98]"
+            className="group relative w-full py-4 rounded-2xl font-black text-lg text-white bg-gradient-to-r from-pink-500 via-purple-600 to-indigo-600 hover:from-pink-400 hover:to-indigo-500 shadow-[0_0_35px_rgba(236,72,153,0.35)] hover:shadow-[0_0_45px_rgba(236,72,153,0.5)] transition-all cursor-pointer flex items-center justify-center gap-3 active:scale-[0.98] overflow-hidden"
           >
-            <Play className="w-6 h-6 fill-white" />
-            <span>INICIAR JUEGO</span>
+            <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+            <Play className="w-6 h-6 fill-white group-hover:scale-110 transition-transform" />
+            <span className="tracking-wider">COMENZAR</span>
+            <Sparkles className="w-4 h-4 text-pink-200 animate-pulse" />
           </button>
         </div>
-      </div>
+      </main>
 
-      {/* PIE DE PÁGINA / CONTROLES */}
-      <div className="relative z-10 text-center text-xs text-neutral-500 border-t border-neutral-900 pt-4">
-        Controles: Usa las teclas <kbd className="px-1.5 py-0.5 rounded bg-neutral-800 text-neutral-300 font-mono">Z</kbd> y <kbd className="px-1.5 py-0.5 rounded bg-neutral-800 text-neutral-300 font-mono">X</kbd> o el Clic del Mouse para golpear los círculos • Presiona <kbd className="px-1.5 py-0.5 rounded bg-neutral-800 text-neutral-300 font-mono">ESC</kbd> para Pausar
-      </div>
+      {/* FOOTER */}
+      <footer className="relative z-10 max-w-6xl w-full mx-auto text-center text-xs text-neutral-400 border-t border-neutral-900/80 pt-4 pb-1">
+        Controles: Usa las teclas <kbd className="px-2 py-0.5 rounded-md bg-neutral-900 border border-neutral-700 text-neutral-200 font-mono font-bold shadow-sm">Z</kbd> y <kbd className="px-2 py-0.5 rounded-md bg-neutral-900 border border-neutral-700 text-neutral-200 font-mono font-bold shadow-sm">X</kbd> o el Clic del Mouse para golpear los círculos • Presiona <kbd className="px-2 py-0.5 rounded-md bg-neutral-900 border border-neutral-700 text-neutral-200 font-mono font-bold shadow-sm">ESC</kbd> para Pausar
+      </footer>
     </div>
   );
 };
