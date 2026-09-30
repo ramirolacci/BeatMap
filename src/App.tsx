@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import type { GameState, Beatmap, GameSettings, ScoreState, ActiveJudgement, HitObject, KeyState } from './types/game';
-import { generateBuiltInBeatmaps } from './utils/beatmapGenerator';
 import { GameEngine } from './engine/gameEngine';
 import { audioEngine } from './audio/audioEngine';
 
@@ -58,12 +57,6 @@ export function App() {
   const gameEngineRef = useRef<GameEngine | null>(null);
   const animationFrameRef = useRef<number | null>(null);
 
-  // Inicializar canciones incorporadas
-  useEffect(() => {
-    const builtIn = generateBuiltInBeatmaps();
-    setBeatmaps(builtIn);
-    setSelectedBeatmap(builtIn[0]);
-  }, []);
 
   // Actualizar volúmenes de audio cuando cambian los ajustes
   useEffect(() => {
@@ -215,7 +208,7 @@ export function App() {
   return (
     <div className="relative w-screen h-screen bg-black overflow-hidden select-none">
       {/* Menú Principal */}
-      {gameState === 'menu' && selectedBeatmap && (
+      {gameState === 'menu' && (
         <MainMenu
           beatmaps={beatmaps}
           selectedBeatmap={selectedBeatmap}

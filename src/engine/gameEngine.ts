@@ -7,6 +7,7 @@ export class GameEngine {
 
   private activeObjects: HitObject[] = [];
   private processedObjectIds: Set<string> = new Set();
+  private sliderHitIds: Set<string> = new Set();
   
   private activeJudgements: ActiveJudgement[] = [];
 
@@ -46,9 +47,9 @@ export class GameEngine {
   public getTimingWindows(): { w300: number; w100: number; w50: number } {
     const od = this.beatmap.od;
     return {
-      w300: 80 - 6 * od,  // e.g. OD 8 = 32ms
-      w100: 140 - 8 * od, // e.g. OD 8 = 76ms
-      w50: 200 - 10 * od  // e.g. OD 8 = 120ms
+      w300: Math.max(70, 100 - 4 * od),  // ~70ms para 300
+      w100: Math.max(130, 170 - 6 * od), // ~130ms para 100
+      w50: Math.max(200, 240 - 8 * od)   // ~200ms para 50 (muy perdonador)
     };
   }
 
@@ -69,14 +70,22 @@ export class GameEngine {
              timeMs <= obj.time + (obj.type === 'slider' ? obj.duration : 0) + w50 + 100
     );
 
-    // 2. Check for missed objects (past w50 timing window)
+    // 2. Check for completed or missed objects
     for (const obj of visibleObjects) {
       if (this.processedObjectIds.has(obj.id)) continue;
       
-      const expireTime = obj.time + w50;
+      const sliderDuration = obj.type === 'slider' ? obj.duration : 0;
+      const expireTime = obj.time + sliderDuration + w50;
+
       if (timeMs > expireTime) {
-        this.registerJudgement(0, 0, obj.x, obj.y);
-        this.processedObjectIds.add(obj.id);
+        if (obj.type === 'slider' && this.sliderHitIds.has(obj.id)) {
+          // El slider se golpeó con éxito y terminó su recorrido
+          this.processedObjectIds.add(obj.id);
+        } else {
+          // Nota o slider no golpeado a tiempo
+          this.registerJudgement(0, 0, obj.x, obj.y);
+          this.processedObjectIds.add(obj.id);
+        }
       }
     }
 
@@ -101,10 +110,28 @@ export class GameEngine {
   // Handle user keypress / click action
   public handleTap(playfieldX: number, playfieldY: number): boolean {
     const { w50 } = this.getTimingWindows();
-    const radius = this.getCircleRadius() * 1.35; // slightly generous hit boundary for smoothness
+    const baseRadius = this.getCircleRadius();
+    const radius = baseRadius * 2.2; // Radio de impacto muy amplio y amigable (2.2x)
 
     const candidate = this.activeObjects.find(obj => {
       if (this.processedObjectIds.has(obj.id)) return false;
+
+      // Para sliders activos durante su recorrido
+      if (obj.type === 'slider' && this.currentTimeMs >= obj.time - w50 && this.currentTimeMs <= obj.time + obj.duration + w50) {
+        const path = obj.path;
+        if (path && path.length > 1) {
+          const progress = Math.max(0, Math.min(1, (this.currentTimeMs - obj.time) / obj.duration));
+          const startPt = path[0];
+          const endPt = path[path.length - 1];
+          const ballX = startPt.x + (endPt.x - startPt.x) * progress;
+          const ballY = startPt.y + (endPt.y - startPt.y) * progress;
+
+          const distHead = Math.hypot(playfieldX - obj.x, playfieldY - obj.y);
+          const distBall = Math.hypot(playfieldX - ballX, playfieldY - ballY);
+          return distHead <= radius * 1.5 || distBall <= radius * 1.5;
+        }
+      }
+
       const timeDiff = Math.abs(this.currentTimeMs - obj.time);
       if (timeDiff > w50) return false;
 
@@ -124,24 +151,35 @@ export class GameEngine {
   }
 
   private processHit(obj: HitObject, offset: number, x: number, y: number) {
-    this.processedObjectIds.add(obj.id);
     audioEngine.playHitsound();
 
-    const absOffset = Math.abs(offset);
-    const { w300, w100, w50 } = this.getTimingWindows();
-
-    let type: JudgementType = 0;
-    if (absOffset <= w300) {
-      type = 300;
-    } else if (absOffset <= w100) {
-      type = 100;
-    } else if (absOffset <= w50) {
-      type = 50;
+    if (obj.type === 'slider') {
+      if (!this.sliderHitIds.has(obj.id)) {
+        this.sliderHitIds.add(obj.id);
+        const absOffset = Math.abs(offset);
+        const { w300, w100, w50 } = this.getTimingWindows();
+        const type: JudgementType = absOffset <= w300 ? 300 : absOffset <= w100 ? 100 : absOffset <= w50 ? 50 : 300;
+        this.registerJudgement(type, offset, x, y);
+      }
+      // Los sliders NO se agregan a processedObjectIds aquí para que sigan visibles mientras la bola se desliza
     } else {
-      type = 0;
-    }
+      this.processedObjectIds.add(obj.id);
+      const absOffset = Math.abs(offset);
+      const { w300, w100, w50 } = this.getTimingWindows();
 
-    this.registerJudgement(type, offset, x, y);
+      let type: JudgementType = 0;
+      if (absOffset <= w300) {
+        type = 300;
+      } else if (absOffset <= w100) {
+        type = 100;
+      } else if (absOffset <= w50) {
+        type = 50;
+      } else {
+        type = 0;
+      }
+
+      this.registerJudgement(type, offset, x, y);
+    }
   }
 
   private registerJudgement(type: JudgementType, offset: number, x: number, y: number) {

@@ -122,7 +122,7 @@ export const CanvasPlayfield: React.FC<CanvasPlayfieldProps> = ({
     <div className="relative w-full h-full flex items-center justify-center bg-black overflow-hidden select-none cursor-none">
       <canvas
         ref={canvasRef}
-        className="w-full h-full max-w-[1024px] max-h-[768px] aspect-[4/3] object-contain cursor-none touch-none"
+        className="w-full h-full aspect-[4/3] object-contain cursor-none touch-none"
       />
     </div>
   );
