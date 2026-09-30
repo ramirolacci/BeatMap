@@ -418,7 +418,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({
           >
             <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
             <Play className="w-6 h-6 fill-current group-hover:scale-110 transition-transform" />
-            <span className="tracking-wider">{selectedBeatmap ? 'COMENZAR' : 'CARGA UNA CANCIÓN'}</span>
+            <span className="tracking-wider">COMENZAR</span>
             {selectedBeatmap && <Sparkles className="w-4 h-4 text-pink-200 animate-pulse" />}
           </button>
         </div>

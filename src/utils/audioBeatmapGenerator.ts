@@ -158,7 +158,7 @@ export function generateBeatmapFromAudioBuffer(
 
   sortedTimes.forEach((t, index) => {
     const prevT = sortedTimes[index - 1];
-    const isNewCombo = index > 0 && (index % 8 === 0 || (prevT && (t - prevT) > beatLen * 1.5));
+    const isNewCombo = index === 0 || (index > 0 && (index % 8 === 0 || (prevT && (t - prevT) > beatLen * 1.5)));
 
     if (isNewCombo) {
       comboNum = 1;
@@ -204,42 +204,16 @@ export function generateBeatmapFromAudioBuffer(
     currentX = Math.max(minX, Math.min(maxX, Math.round(currentX)));
     currentY = Math.max(minY, Math.min(maxY, Math.round(currentY)));
 
-    // Slider placement on sustained beat gaps
-    const nextT = sortedTimes[index + 1];
-    const isSlider = nextT && (nextT - t >= beatLen * 0.9) && Math.random() > 0.35;
-
-    if (isSlider) {
-      const sliderDuration = Math.round(Math.min(beatLen * 1.5, nextT - t - 50));
-      const endX = Math.max(minX, Math.min(maxX, currentX + (Math.random() > 0.5 ? 90 : -90)));
-      const endY = Math.max(minY, Math.min(maxY, currentY + (Math.random() > 0.5 ? 70 : -70)));
-
-      hitObjects.push({
-        id: `custom_s_${t}_${index}`,
-        type: 'slider',
-        x: currentX,
-        y: currentY,
-        time: t,
-        duration: sliderDuration,
-        path: [
-          { x: currentX, y: currentY },
-          { x: (currentX + endX) / 2 + (Math.random() * 20 - 10), y: (currentY + endY) / 2 },
-          { x: endX, y: endY }
-        ],
-        repeat: 1,
-        comboNumber: comboNum,
-        comboColorIndex
-      });
-    } else {
-      hitObjects.push({
-        id: `custom_c_${t}_${index}`,
-        type: 'circle',
-        x: currentX,
-        y: currentY,
-        time: t,
-        comboNumber: comboNum,
-        comboColorIndex
-      });
-    }
+    // Generate ONLY crisp single hit circles (Sliders completely disabled per user preference)
+    hitObjects.push({
+      id: `custom_c_${t}_${index}`,
+      type: 'circle',
+      x: currentX,
+      y: currentY,
+      time: t,
+      comboNumber: comboNum,
+      comboColorIndex
+    });
   });
 
   const cleanTitle = fileName.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ');

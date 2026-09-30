@@ -11,7 +11,7 @@ class AudioEngine {
   private pauseOffset: number = 0;
   private isPlaying: boolean = false;
   private musicVolume: number = 0.7;
-  private hitsoundVolume: number = 0.8;
+  private hitsoundVolume: number = 0;
 
   private analyserNode: AnalyserNode | null = null;
 

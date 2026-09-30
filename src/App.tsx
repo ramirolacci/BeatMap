@@ -18,7 +18,7 @@ export function App() {
   const [settings, setSettings] = useState<GameSettings>({
     masterVolume: 0.8,
     musicVolume: 0.7,
-    hitsoundVolume: 0.8,
+    hitsoundVolume: 0,
     backgroundDim: 0.8,
     key1: 'z',
     key2: 'x',
