@@ -2,6 +2,8 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import type { GameState, Beatmap, GameSettings, ScoreState, ActiveJudgement, HitObject, KeyState } from './types/game';
 import { GameEngine } from './engine/gameEngine';
 import { audioEngine } from './audio/audioEngine';
+import { loadDefaultBeatmaps } from './utils/defaultSongLoader';
+import { Loader2 } from 'lucide-react';
 
 import { MainMenu } from './components/MainMenu';
 import { CanvasPlayfield } from './components/CanvasPlayfield';
@@ -12,6 +14,8 @@ import { ResultsScreen } from './components/ResultsScreen';
 export function App() {
   const [beatmaps, setBeatmaps] = useState<Beatmap[]>([]);
   const [selectedBeatmap, setSelectedBeatmap] = useState<Beatmap | null>(null);
+  const [isLoadingDefaults, setIsLoadingDefaults] = useState(true);
+  const [loadingMsg, setLoadingMsg] = useState('Inicializando canciones por defecto...');
 
   const [gameState, setGameState] = useState<GameState>('menu');
 
@@ -57,6 +61,31 @@ export function App() {
   const gameEngineRef = useRef<GameEngine | null>(null);
   const animationFrameRef = useRef<number | null>(null);
 
+  // Cargar canciones por defecto automáticamente al iniciar la aplicación
+  useEffect(() => {
+    let isMounted = true;
+    async function initDefaults() {
+      try {
+        const maps = await loadDefaultBeatmaps((msg) => {
+          if (isMounted) setLoadingMsg(msg);
+        });
+
+        if (isMounted) {
+          if (maps.length > 0) {
+            setBeatmaps(maps);
+            setSelectedBeatmap(maps[0]);
+          }
+          setIsLoadingDefaults(false);
+        }
+      } catch (err) {
+        console.error('Error inicializando canciones por defecto:', err);
+        if (isMounted) setIsLoadingDefaults(false);
+      }
+    }
+
+    initDefaults();
+    return () => { isMounted = false; };
+  }, []);
 
   // Actualizar volúmenes de audio cuando cambian los ajustes
   useEffect(() => {
@@ -207,6 +236,15 @@ export function App() {
 
   return (
     <div className="relative w-screen h-screen bg-black overflow-hidden select-none">
+      {/* Indicador de Carga Inicial de Canciones por Defecto */}
+      {isLoadingDefaults && (
+        <div className="fixed inset-0 z-50 bg-[#050508] flex flex-col items-center justify-center p-6 text-white selection:bg-pink-500">
+          <Loader2 className="w-12 h-12 text-pink-500 animate-spin mb-4 shadow-[0_0_20px_#ec4899]" />
+          <h2 className="text-xl font-black tracking-wider text-white">CARGANDO MÚSICA POR DEFECTO</h2>
+          <p className="text-xs font-mono text-neutral-400 mt-2">{loadingMsg}</p>
+        </div>
+      )}
+
       {/* Menú Principal */}
       {gameState === 'menu' && (
         <MainMenu
