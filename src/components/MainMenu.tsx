@@ -27,7 +27,6 @@ export const MainMenu: React.FC<MainMenuProps> = ({
   const osuInputRef = useRef<HTMLInputElement | null>(null);
   const audioInputRef = useRef<HTMLInputElement | null>(null);
 
-  const [isDragging, setIsDragging] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingMsg, setProcessingMsg] = useState('Procesando archivo...');
 
@@ -78,26 +77,6 @@ export const MainMenu: React.FC<MainMenuProps> = ({
     e.target.value = '';
   };
 
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(true);
-  };
-
-  const handleDragLeave = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(false);
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(false);
-    const file = e.dataTransfer.files?.[0];
-    if (file) processFile(file);
-  };
-
   const getDifficultyBadge = (version: string) => {
     const v = version.toLowerCase();
     if (v.includes('experto') || v.includes('expert')) {
@@ -110,24 +89,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({
   };
 
   return (
-    <div 
-      onDragOver={handleDragOver}
-      onDragLeave={handleDragLeave}
-      onDrop={handleDrop}
-      className="relative w-full h-full min-h-screen bg-[#050508] text-white flex flex-col justify-between p-4 sm:p-6 md:p-8 font-sans overflow-y-auto selection:bg-pink-500 selection:text-white"
-    >
-      {/* Drag & Drop Visual Overlay */}
-      {isDragging && (
-        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex flex-col items-center justify-center p-6 border-4 border-dashed border-pink-500 animate-pulse">
-          <FileAudio className="w-20 h-20 text-pink-400 mb-4 animate-bounce" />
-          <h2 className="text-2xl md:text-3xl font-black text-white text-center tracking-wide">
-            ¡SUELTA TU CANCIÓN AQUÍ!
-          </h2>
-          <p className="text-sm text-neutral-300 mt-2 text-center max-w-md">
-            Soporta archivos de audio (MP3, WAV, OGG, FLAC) o archivos .osu para generar el beatmap automáticamente.
-          </p>
-        </div>
-      )}
+    <div className="relative w-full h-full min-h-screen bg-[#050508] text-white flex flex-col justify-between p-4 sm:p-6 md:p-8 font-sans overflow-y-auto selection:bg-pink-500 selection:text-white">
 
       {/* Processing Audio Modal */}
       {isProcessing && (
@@ -227,7 +189,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({
                 </div>
                 <h3 className="text-base font-bold text-white tracking-wide">¡No tienes canciones cargadas!</h3>
                 <p className="text-xs text-neutral-400 max-w-sm leading-relaxed">
-                  Haz clic en <span className="text-pink-300 font-semibold">CARGAR CANCIÓN (MP3)</span> en la cabecera o arrastra un archivo de audio directamente a esta ventana para generar el mapa automáticamente.
+                  Haz clic en <span className="text-pink-300 font-semibold">CARGAR CANCIÓN (MP3)</span> o <span className="text-pink-300 font-semibold">IMPORTAR .OSU</span> en la cabecera superior para cargar tu música.
                 </p>
               </div>
             ) : (
