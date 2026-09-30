@@ -1,32 +1,52 @@
-# React + TypeScript + Vite
+<div align="center">
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+  <h1>🎵 BEATMAP</h1>
+  <p><b>Juego de Ritmo por Círculos & Generador de Beatmaps por Audio MP3</b></p>
 
-Currently, two official plugins are available:
+  <p>
+    <a href="#-galería"><img src="https://img.shields.io/badge/UI-Cyberpunk_Glassmorphism-pink?style=for-the-badge" alt="UI" /></a>
+    <a href="#-características-principales"><img src="https://img.shields.io/badge/Engine-Web_Audio_API-purple?style=for-the-badge" alt="Audio Engine" /></a>
+    <a href="#-características-principales"><img src="https://img.shields.io/badge/Animations-GSAP_3-indigo?style=for-the-badge" alt="Animations" /></a>
+  </p>
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+</div>
 
-## React Compiler
+---
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## 🌟 Sobre BeatMap
 
-## Expanding the Oxlint configuration
+**BeatMap** es un juego de ritmo por círculos moderno, dinámico y totalmente responsivo diseñado para ejecutarse directamente en el navegador. Fusiona la precisión táctil de los juegos de ritmo clásicos con una potente suite de análisis de frecuencias de audio que permite generar mapas de ritmo jugables e instantáneos a partir de cualquier archivo MP3 o importar canciones en formato `.osu`.
 
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
+---
 
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
-```
+## 🖼️ Galería
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+<div align="center">
+  <table>
+    <tr>
+      <td width="50%"><img src="public/screenshots/Screenshot_1.png" alt="Menú Principal y Selección de Canciones" width="100%"/></td>
+      <td width="50%"><img src="public/screenshots/Screenshot_2.png" alt="Ajustes y Panel de Canciones" width="100%"/></td>
+    </tr>
+    <tr>
+      <td width="50%"><img src="public/screenshots/Screenshot_3.png" alt="Pantalla de Juego y Gameplay" width="100%"/></td>
+      <td width="50%"><img src="public/screenshots/Screenshot_4.png" alt="Pantalla de Resultados y Calificación" width="100%"/></td>
+    </tr>
+  </table>
+</div>
+
+---
+
+## 🔥 Características Principales
+
+* 🎧 **Generación Inteligente de Ritmo desde MP3**: Carga cualquier archivo de audio y el algoritmo detectará automáticamente el BPM, los transitorios de bajos y la intensidad musical para crear un patrón de notas sincronizado.
+* 📂 **Soporte para Formato `.osu`**: Importa mapas de la comunidad de *osu!* de forma directa y juega con configuraciones exactas de aproximación (AR), tamaño de círculo (CS) y dificultad (OD).
+* ⚡ **Motor Gráfico en Canvas 2D**: Renderizado ultra rápido a 60/120 FPS con rastro de cursor, animaciones de contracción de círculos de aproximación (*Approach Circles*) y retroalimentación de impactos visuales.
+* 🎮 **Canciones Precargadas**: Incluye una selección por defecto de temas populares (Bad Bunny, DUKI, Skrillex, Travis Scott) listos para jugar desde el primer instante.
+* 📊 **Sistema de Puntuación y Resultados**: Evaluación precisa en tiempo real de combo máximo, precisión porcentual, desglose de notas (300 / 100 / 50 / Fallos) y calificación por grado (S, A, B, C, D) con efectos de celebración.
+* ✨ **Estética Neón Cyberpunk**: Interfaz de usuario pulida con efectos de brillo ambiental, desenfoque esmerilado (*Backdrop Blur*), transiciones fluidas con GSAP y personalización de controles.
+
+---
+
+<div align="center">
+  <sub>Desarrollado con ❤️ para amantes de los juegos de ritmo.</sub>
+</div>
