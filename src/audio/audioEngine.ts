@@ -13,6 +13,8 @@ class AudioEngine {
   private musicVolume: number = 0.7;
   private hitsoundVolume: number = 0.8;
 
+  private analyserNode: AnalyserNode | null = null;
+
   constructor() {
     // Lazy init audio context on user interaction
   }
@@ -23,17 +25,28 @@ class AudioEngine {
       this.ctx = new AudioCtx();
       this.musicGainNode = this.ctx.createGain();
       this.hitsoundGainNode = this.ctx.createGain();
+      this.analyserNode = this.ctx.createAnalyser();
+      this.analyserNode.fftSize = 128;
+      this.analyserNode.smoothingTimeConstant = 0.8;
 
       this.musicGainNode.gain.value = this.musicVolume;
       this.hitsoundGainNode.gain.value = this.hitsoundVolume;
 
-      this.musicGainNode.connect(this.ctx.destination);
+      this.musicGainNode.connect(this.analyserNode);
+      this.analyserNode.connect(this.ctx.destination);
       this.hitsoundGainNode.connect(this.ctx.destination);
     }
 
     if (this.ctx.state === 'suspended') {
       this.ctx.resume();
     }
+  }
+
+  public getFrequencyData(): Uint8Array {
+    if (!this.analyserNode) return new Uint8Array(64);
+    const data = new Uint8Array(this.analyserNode.frequencyBinCount);
+    this.analyserNode.getByteFrequencyData(data);
+    return data;
   }
 
   public setVolumes(music: number, hitsound: number) {

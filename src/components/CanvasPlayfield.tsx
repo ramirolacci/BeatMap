@@ -34,12 +34,20 @@ export const CanvasPlayfield: React.FC<CanvasPlayfieldProps> = ({
     localCursorRef.current = { x: cursorX, y: cursorY };
   }, [cursorX, cursorY]);
 
-  // Establecer dimensiones del canvas SOLO al montar
+  // Actualizar dimensiones dinámicas del canvas para ocupar el 100% de la pantalla
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    canvas.width = 1024;
-    canvas.height = 768;
+    const handleResize = () => {
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+      const rect = canvas.getBoundingClientRect();
+      if (rect.width > 0 && rect.height > 0) {
+        canvas.width = rect.width;
+        canvas.height = rect.height;
+      }
+    };
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   // Eventos nativos de ratón/puntero con cero latencia y registro directo de clics
@@ -49,8 +57,15 @@ export const CanvasPlayfield: React.FC<CanvasPlayfieldProps> = ({
 
     const getPlayfieldCoords = (clientX: number, clientY: number) => {
       const rect = canvas.getBoundingClientRect();
-      const px = Math.max(0, Math.min(512, ((clientX - rect.left) / rect.width) * 512));
-      const py = Math.max(0, Math.min(384, ((clientY - rect.top) / rect.height) * 384));
+      const scale = Math.min(rect.width / 512, rect.height / 384);
+      const offsetX = (rect.width - 512 * scale) / 2;
+      const offsetY = (rect.height - 384 * scale) / 2;
+
+      const mouseX = clientX - rect.left;
+      const mouseY = clientY - rect.top;
+
+      const px = Math.max(0, Math.min(512, (mouseX - offsetX) / scale));
+      const py = Math.max(0, Math.min(384, (mouseY - offsetY) / scale));
       return { px, py };
     };
 
@@ -83,14 +98,23 @@ export const CanvasPlayfield: React.FC<CanvasPlayfieldProps> = ({
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    const width = 512;
-    const height = 384;
+    const canvasWidth = canvas.width || 1024;
+    const canvasHeight = canvas.height || 768;
+
+    // Escala uniforme para mantener proporción exacta 1:1 de círculos
+    const scale = Math.min(canvasWidth / 512, canvasHeight / 384);
+    const offsetX = (canvasWidth - 512 * scale) / 2;
+    const offsetY = (canvasHeight - 384 * scale) / 2;
 
     ctx.save();
-    ctx.scale(2, 2);
+    
+    // 0. Fondo negro 100% pantalla completa
+    ctx.fillStyle = '#050508';
+    ctx.fillRect(0, 0, canvasWidth, canvasHeight);
 
-    // Limpiar canvas
-    ctx.clearRect(0, 0, width, height);
+    // Transformación centrada para espacio de juego 512x384
+    ctx.translate(offsetX, offsetY);
+    ctx.scale(scale, scale);
 
     // 1. Dibujar Follow Points
     drawFollowPoints(ctx, visibleObjects, currentTimeMs, preemptMs, circleRadius);
@@ -119,10 +143,10 @@ export const CanvasPlayfield: React.FC<CanvasPlayfieldProps> = ({
   }, [visibleObjects, activeJudgements, currentTimeMs, preemptMs, circleRadius, keyState]);
 
   return (
-    <div className="relative w-full h-full flex items-center justify-center bg-black overflow-hidden select-none cursor-none">
+    <div className="relative w-full h-full bg-black overflow-hidden select-none cursor-none">
       <canvas
         ref={canvasRef}
-        className="w-full h-full aspect-[4/3] object-contain cursor-none touch-none"
+        className="w-full h-full block cursor-none touch-none"
       />
     </div>
   );
@@ -392,3 +416,6 @@ function drawCursor(
 
   ctx.restore();
 }
+
+
+

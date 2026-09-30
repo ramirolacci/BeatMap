@@ -1,9 +1,10 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import type { Beatmap, GameSettings } from '../types/game';
 import { Play, Volume2, Upload, Music, Disc, Sparkles, SlidersHorizontal, Zap, FileAudio, Loader2 } from 'lucide-react';
 import { parseOsuFile } from '../utils/osuParser';
 import { generateBeatmapFromAudioBuffer } from '../utils/audioBeatmapGenerator';
 import { audioEngine } from '../audio/audioEngine';
+import { gsap } from 'gsap';
 
 interface MainMenuProps {
   beatmaps: Beatmap[];
@@ -27,8 +28,52 @@ export const MainMenu: React.FC<MainMenuProps> = ({
   const osuInputRef = useRef<HTMLInputElement | null>(null);
   const audioInputRef = useRef<HTMLInputElement | null>(null);
 
+  const headerRef = useRef<HTMLDivElement | null>(null);
+  const trackListRef = useRef<HTMLDivElement | null>(null);
+  const detailsPanelRef = useRef<HTMLDivElement | null>(null);
+  const startBtnRef = useRef<HTMLButtonElement | null>(null);
+
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingMsg, setProcessingMsg] = useState('Procesando archivo...');
+
+  // Entrance GSAP Animations
+  useEffect(() => {
+    const ctx = gsap.context(() => {
+      // 1. Header slide down
+      if (headerRef.current) {
+        gsap.from(headerRef.current, {
+          y: -40,
+          opacity: 0,
+          duration: 0.8,
+          ease: 'power3.out'
+        });
+      }
+
+      // 2. Track selector list slide in from left
+      if (trackListRef.current) {
+        gsap.from(trackListRef.current.children, {
+          x: -50,
+          opacity: 0,
+          duration: 0.6,
+          stagger: 0.08,
+          ease: 'power3.out'
+        });
+      }
+
+      // 3. Right Details Panel slide in from right
+      if (detailsPanelRef.current) {
+        gsap.from(detailsPanelRef.current, {
+          x: 50,
+          opacity: 0,
+          duration: 0.7,
+          ease: 'power3.out',
+          delay: 0.15
+        });
+      }
+    });
+
+    return () => ctx.revert();
+  }, []);
 
   const processFile = async (file: File) => {
     if (!file) return;
@@ -106,7 +151,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({
       <div className="fixed bottom-[-10%] left-[-10%] w-[500px] h-[500px] bg-purple-600/15 blur-[140px] rounded-full pointer-events-none" />
 
       {/* HEADER / NAVBAR */}
-      <header className="relative z-10 max-w-6xl w-full mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 border-b border-white/10 pb-5 pt-2">
+      <header ref={headerRef} className="relative z-10 max-w-6xl w-full mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 border-b border-white/10 pb-5 pt-2">
         <div className="flex items-center gap-3.5">
           {/* Logo Matching Favicon */}
           <div className="relative w-11 h-11 rounded-2xl bg-gradient-to-br from-pink-500 via-purple-600 to-indigo-600 p-0.5 shadow-lg shadow-pink-500/25 flex items-center justify-center group cursor-pointer">
@@ -181,7 +226,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({
             </span>
           </div>
 
-          <div className="flex flex-col gap-3">
+          <div ref={trackListRef} className="flex flex-col gap-3">
             {beatmaps.length === 0 ? (
               <div className="p-8 rounded-3xl border border-dashed border-pink-500/30 bg-neutral-950/40 text-center flex flex-col items-center justify-center gap-3 backdrop-blur-sm">
                 <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-pink-500/20 to-purple-600/20 border border-pink-500/30 flex items-center justify-center text-pink-400 mb-1 shadow-lg shadow-pink-500/10">
@@ -268,7 +313,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({
         </div>
 
         {/* Right Column: Song Stats & Control Panel */}
-        <div className="lg:col-span-5 bg-neutral-900/40 border border-neutral-800/90 rounded-3xl p-6 backdrop-blur-xl flex flex-col justify-between gap-6 shadow-2xl relative overflow-hidden">
+        <div ref={detailsPanelRef} className="lg:col-span-5 bg-neutral-900/40 border border-neutral-800/90 rounded-3xl p-6 backdrop-blur-xl flex flex-col justify-between gap-6 shadow-2xl relative overflow-hidden">
           {/* Glowing Top Accent Line */}
           <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-pink-500/60 to-transparent" />
 
@@ -285,7 +330,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({
                   <span className="text-pink-400">{selectedBeatmap ? selectedBeatmap.ar : '-'}</span>
                 </div>
                 <div className="h-1.5 w-full bg-neutral-800 rounded-full overflow-hidden">
-                  <div className="h-full bg-gradient-to-r from-pink-500 to-rose-400 rounded-full" style={{ width: `${selectedBeatmap ? (selectedBeatmap.ar / 10) * 100 : 0}%` }} />
+                  <div className="h-full bg-gradient-to-r from-pink-500 to-rose-400 rounded-full transition-all duration-500" style={{ width: `${selectedBeatmap ? (selectedBeatmap.ar / 10) * 100 : 0}%` }} />
                 </div>
               </div>
 
@@ -295,7 +340,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({
                   <span className="text-purple-400">{selectedBeatmap ? selectedBeatmap.cs : '-'}</span>
                 </div>
                 <div className="h-1.5 w-full bg-neutral-800 rounded-full overflow-hidden">
-                  <div className="h-full bg-gradient-to-r from-purple-500 to-indigo-400 rounded-full" style={{ width: `${selectedBeatmap ? (selectedBeatmap.cs / 10) * 100 : 0}%` }} />
+                  <div className="h-full bg-gradient-to-r from-purple-500 to-indigo-400 rounded-full transition-all duration-500" style={{ width: `${selectedBeatmap ? (selectedBeatmap.cs / 10) * 100 : 0}%` }} />
                 </div>
               </div>
 
@@ -305,7 +350,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({
                   <span className="text-sky-400">{selectedBeatmap ? selectedBeatmap.od : '-'}</span>
                 </div>
                 <div className="h-1.5 w-full bg-neutral-800 rounded-full overflow-hidden">
-                  <div className="h-full bg-gradient-to-r from-sky-500 to-blue-400 rounded-full" style={{ width: `${selectedBeatmap ? (selectedBeatmap.od / 10) * 100 : 0}%` }} />
+                  <div className="h-full bg-gradient-to-r from-sky-500 to-blue-400 rounded-full transition-all duration-500" style={{ width: `${selectedBeatmap ? (selectedBeatmap.od / 10) * 100 : 0}%` }} />
                 </div>
               </div>
 
@@ -315,7 +360,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({
                   <span className="text-emerald-400">{selectedBeatmap ? selectedBeatmap.hpDrain : '-'}</span>
                 </div>
                 <div className="h-1.5 w-full bg-neutral-800 rounded-full overflow-hidden">
-                  <div className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full" style={{ width: `${selectedBeatmap ? (selectedBeatmap.hpDrain / 10) * 100 : 0}%` }} />
+                  <div className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full transition-all duration-500" style={{ width: `${selectedBeatmap ? (selectedBeatmap.hpDrain / 10) * 100 : 0}%` }} />
                 </div>
               </div>
             </div>
@@ -362,6 +407,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({
 
           {/* BOTÓN COMENZAR */}
           <button
+            ref={startBtnRef}
             onClick={onStartGame}
             disabled={!selectedBeatmap}
             className={`group relative w-full py-4 rounded-2xl font-black text-lg transition-all flex items-center justify-center gap-3 overflow-hidden ${
