@@ -6,7 +6,7 @@
   <p>
     <a href="#-galería"><img src="https://img.shields.io/badge/UI-Cyberpunk_Glassmorphism-pink?style=for-the-badge" alt="UI" /></a>
     <a href="#-características-principales"><img src="https://img.shields.io/badge/Engine-Web_Audio_API-purple?style=for-the-badge" alt="Audio Engine" /></a>
-    <a href="#-características-principales"><img src="https://img.shields.io/badge/Animations-GSAP_3-indigo?style=for-the-badge" alt="Animations" /></a>
+    <a href="#-características-principales"><img src="https://img.shields.io/badge/gsap-%230AE448.svg?style=for-the-badge&logo=gsap&logoColor=white" alt="Animations" /></a>
   </p>
 
 </div>
