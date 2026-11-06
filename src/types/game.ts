@@ -87,6 +87,7 @@ export interface GameSettings {
   masterVolume: number;
   musicVolume: number;
   hitsoundVolume: number;
+  audioOffset: number; // Offset in ms (-200ms to +200ms) for hardware/audio latency calibration
   backgroundDim: number;
   key1: string;
   key2: string;
@@ -94,4 +95,13 @@ export interface GameSettings {
   showHitErrorBar: boolean;
 }
 
-export type GameState = 'menu' | 'playing' | 'paused' | 'results' | 'editor';
+export interface HitExplosion {
+  id: string;
+  x: number;
+  y: number;
+  radius: number;
+  color: string;
+  spawnTime: number;
+}
+
+export type GameState = 'menu' | 'playing' | 'paused' | 'results' | 'failed' | 'editor';

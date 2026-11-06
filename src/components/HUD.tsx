@@ -117,22 +117,30 @@ export const HUD: React.FC<HUDProps> = ({
         </div>
 
         {/* Centro Inferior: Medidor de Sincronización UR (Hit Error Bar) */}
-        <div className="flex flex-col items-center gap-1 mx-auto">
-          <div className="relative w-48 md:w-64 h-2.5 bg-black/90 rounded-full border border-neutral-600 overflow-hidden flex items-center justify-center shadow-lg">
-            {/* Zona Verde Central 300 */}
-            <div className="w-12 h-full bg-emerald-500/40 border-x border-emerald-400" />
+        <div className="flex flex-col items-center gap-0.5 mx-auto">
+          <div className="flex justify-between w-48 md:w-64 text-[9px] font-mono text-neutral-400 font-bold px-1">
+            <span>EARLY</span>
+            <span className={scoreState.hitErrors.length > 0 && Math.abs(scoreState.hitErrors[scoreState.hitErrors.length - 1].offset) < 20 ? 'text-sky-300' : 'text-neutral-300'}>
+              {scoreState.hitErrors.length > 0 ? `${scoreState.hitErrors[scoreState.hitErrors.length - 1].offset > 0 ? '+' : ''}${scoreState.hitErrors[scoreState.hitErrors.length - 1].offset}ms` : '0ms'}
+            </span>
+            <span>LATE</span>
+          </div>
+
+          <div className="relative w-48 md:w-64 h-3 bg-black/90 rounded-full border border-neutral-600 overflow-hidden flex items-center justify-center shadow-lg">
+            {/* Zona Azul Central 300 */}
+            <div className="w-10 h-full bg-sky-500/30 border-x border-sky-400" />
             
-            {/* Indicador Central ^ */}
-            <div className="absolute top-0 bottom-0 w-0.5 bg-sky-300 z-10 shadow-[0_0_6px_#38bdf8]" />
+            {/* Indicador Central Blanco */}
+            <div className="absolute top-0 bottom-0 w-0.5 bg-white z-10 shadow-[0_0_8px_#ffffff]" />
 
             {/* Dynamic hit error ticks */}
-            {scoreState.hitErrors.slice(-12).map((err, idx) => {
+            {scoreState.hitErrors.slice(-14).map((err, idx) => {
               const leftPercent = 50 + (err.offset / 100) * 50;
               const colorClass =
                 err.type === 300
-                  ? 'bg-sky-400'
+                  ? 'bg-sky-400 shadow-[0_0_6px_#38bdf8]'
                   : err.type === 100
-                  ? 'bg-emerald-400'
+                  ? 'bg-emerald-400 shadow-[0_0_6px_#4ade80]'
                   : err.type === 50
                   ? 'bg-yellow-400'
                   : 'bg-red-500';
@@ -146,7 +154,7 @@ export const HUD: React.FC<HUDProps> = ({
               );
             })}
           </div>
-          <div className="text-[10px] text-neutral-400 font-mono font-bold">
+          <div className="text-[9px] text-neutral-500 font-mono font-bold">
             ▲
           </div>
         </div>

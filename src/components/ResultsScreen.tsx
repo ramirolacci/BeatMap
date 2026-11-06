@@ -25,25 +25,28 @@ export const ResultsScreen: React.FC<ResultsScreenProps> = ({
   let grade = 'D';
   let gradeColor = 'text-red-500';
 
-  if (scoreState.accuracy >= 98 && scoreState.misses === 0) {
+  if (scoreState.accuracy >= 100 && scoreState.misses === 0) {
+    grade = 'SS';
+    gradeColor = 'text-amber-200 drop-shadow-[0_0_25px_rgba(253,224,71,0.95)]';
+  } else if (scoreState.accuracy >= 95 && scoreState.misses === 0) {
     grade = 'S';
     gradeColor = 'text-amber-300 drop-shadow-[0_0_15px_rgba(252,211,77,0.8)]';
-  } else if (scoreState.accuracy >= 95) {
+  } else if (scoreState.accuracy >= 90) {
     grade = 'A';
     gradeColor = 'text-emerald-400 drop-shadow-[0_0_15px_rgba(52,211,153,0.8)]';
-  } else if (scoreState.accuracy >= 90) {
+  } else if (scoreState.accuracy >= 80) {
     grade = 'B';
     gradeColor = 'text-sky-400';
-  } else if (scoreState.accuracy >= 80) {
+  } else if (scoreState.accuracy >= 70) {
     grade = 'C';
     gradeColor = 'text-indigo-400';
   }
 
   useEffect(() => {
-    if (grade === 'S' || grade === 'A') {
+    if (grade === 'SS' || grade === 'S' || grade === 'A') {
       confetti({
-        particleCount: 100,
-        spread: 70,
+        particleCount: grade === 'SS' ? 150 : 90,
+        spread: grade === 'SS' ? 90 : 70,
         origin: { y: 0.6 }
       });
     }
