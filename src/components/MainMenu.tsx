@@ -138,30 +138,30 @@ export const MainMenu: React.FC<MainMenuProps> = ({
     onSelectBeatmap(map);
   };
 
-  // Badge con estilos legibles para cada nivel
+  // Badge con estilos en colores fuertes y sólidos con máxima nitidez y presencia
   const getDifficultyBadge = (version: string) => {
     const v = version.toLowerCase();
     if (v.includes('fácil') || v.includes('facil') || v.includes('easy')) {
       return { 
         label: 'Fácil', 
-        color: 'from-emerald-500/25 to-teal-500/25 text-emerald-300 border-emerald-500/50 shadow-emerald-500/15' 
+        color: 'bg-[#059669] text-white border-transparent shadow-md shadow-emerald-600/30 font-black' 
       };
     }
     if (v.includes('normal') || v.includes('medio')) {
       return { 
         label: 'Normal', 
-        color: 'from-amber-500/25 to-yellow-500/25 text-amber-300 border-amber-500/50 shadow-amber-500/15' 
+        color: 'bg-[#f59e0b] text-neutral-950 border-transparent shadow-md shadow-amber-500/30 font-black' 
       };
     }
     if (v.includes('experto') || v.includes('expert') || v.includes('insano') || v.includes('insane')) {
       return { 
         label: 'Experto', 
-        color: 'from-purple-500/25 to-indigo-500/25 text-purple-300 border-purple-500/50 shadow-purple-500/15' 
+        color: 'bg-[#7c3aed] text-white border-transparent shadow-md shadow-purple-600/30 font-black' 
       };
     }
     return { 
       label: 'Difícil', 
-      color: 'from-rose-500/25 to-pink-500/25 text-rose-300 border-rose-500/50 shadow-rose-500/15' 
+      color: 'bg-[#e11d48] text-white border-transparent shadow-md shadow-rose-600/30 font-black' 
     };
   };
 
@@ -198,7 +198,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({
               <h1 className="text-2xl font-black tracking-tight text-white flex items-center gap-1.5 leading-none">
                 BEATMAP
               </h1>
-              <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-pink-500/20 text-pink-300 border border-pink-500/30">
+              <span className="text-[10px] font-mono font-black px-2.5 py-0.5 rounded-full bg-[#db2777] text-white border-transparent shadow-md shadow-pink-600/30 tracking-wider">
                 PRO ENGINE
               </span>
             </div>
@@ -320,7 +320,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({
                               {map.title}
                             </h3>
 
-                            <span className={`font-mono text-[10px] font-bold px-2 py-0.5 rounded-full border shadow-sm leading-none ${badge.color}`}>
+                            <span className={`font-mono text-[10px] px-2.5 py-0.5 rounded-full leading-none tracking-wide ${badge.color}`}>
                               {badge.label}
                             </span>
 
@@ -329,7 +329,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({
                             </span>
 
                             {map.audioBuffer && (
-                              <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 leading-none">
+                              <span className="text-[9px] font-mono font-black px-1.5 py-0.5 rounded-md bg-[#0284c7] text-white shadow-sm leading-none">
                                 MP3
                               </span>
                             )}
@@ -383,7 +383,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({
               </h3>
               {selectedBeatmap && (
                 <div className="flex items-center gap-2">
-                  <span className={`font-mono text-[10px] font-bold px-2 py-0.5 rounded-full border shadow-sm ${getDifficultyBadge(selectedBeatmap.version).color}`}>
+                  <span className={`font-mono text-[10px] px-2.5 py-0.5 rounded-full tracking-wide ${getDifficultyBadge(selectedBeatmap.version).color}`}>
                     {getDifficultyBadge(selectedBeatmap.version).label}
                   </span>
                   <span className="text-xs font-mono font-bold text-pink-400">
@@ -539,8 +539,8 @@ export const MainMenu: React.FC<MainMenuProps> = ({
             </div>
           </div>
 
-          {/* BOTÓN COMENZAR (Ajustado proporcionalmente al texto) */}
-          <div className="flex justify-center sm:justify-end pt-1">
+          {/* BOTÓN COMENZAR (Posicionado en el centro del panel) */}
+          <div className="flex justify-center items-center w-full pt-3 pb-1">
             <button
               ref={startBtnRef}
               onClick={onStartGame}
