@@ -41,9 +41,78 @@
 * 🎧 **Generación Inteligente de Ritmo desde MP3**: Carga cualquier archivo de audio y el algoritmo detectará automáticamente el BPM, los transitorios de bajos y la intensidad musical para crear un patrón de notas sincronizado.
 * 📂 **Soporte para Formato `.osu`**: Importa mapas de la comunidad de *osu!* de forma directa y juega con configuraciones exactas de aproximación (AR), tamaño de círculo (CS) y dificultad (OD).
 * ⚡ **Motor Gráfico en Canvas 2D**: Renderizado ultra rápido a 60/120 FPS con rastro de cursor, animaciones de contracción de círculos de aproximación (*Approach Circles*) y retroalimentación de impactos visuales.
-* 🎮 **Canciones Precargadas**: Incluye una selección por defecto de temas populares (Bad Bunny, DUKI, Skrillex, Travis Scott) listos para jugar desde el primer instante.
+* 🎮 **Canciones Precargadas**: Incluye una selección por defecto equilibrada en todas las dificultades (Fácil, Normal, Difícil, Experto) con portadas personalizadas listas para jugar.
 * 📊 **Sistema de Puntuación y Resultados**: Evaluación precisa en tiempo real de combo máximo, precisión porcentual, desglose de notas (300 / 100 / 50 / Fallos) y calificación por grado (S, A, B, C, D) con efectos de celebración.
 * ✨ **Estética Neón Cyberpunk**: Interfaz de usuario pulida con efectos de brillo ambiental, desenfoque esmerilado (*Backdrop Blur*), transiciones fluidas con GSAP y personalización de controles.
+
+---
+
+## 🛠️ Tecnologías Utilizadas
+
+* **Framework & Core:** [React 19](https://react.dev/), [TypeScript](https://www.typescriptlang.org/), [Vite](https://vitejs.dev/)
+* **Estilos & Diseño:** [Tailwind CSS v4](https://tailwindcss.com/), [Lucide React](https://lucide.dev/)
+* **Animaciones & Efectos:** [GSAP (GreenSock)](https://greensock.com/), [Canvas-Confetti](https://www.npmjs.com/package/canvas-confetti)
+* **Motor de Audio:** Web Audio API nativo con AudioContext decodificado de baja latencia
+* **Linter de Alta Velocidad:** [Oxlint](https://oxc.rs/)
+
+---
+
+## 🚀 Instalación y Puesta en Marcha
+
+Sigue estos pasos para clonar y ejecutar el proyecto localmente en tu computadora:
+
+### 1. Requisitos Previos
+
+Asegúrate de tener instalados:
+* [Node.js](https://nodejs.org/) (versión 18 o superior recomendada, v20+)
+* Gestor de paquetes: [pnpm](https://pnpm.io/) (recomendado), `npm` o `yarn`
+
+### 2. Clonar el Repositorio
+
+```bash
+git clone https://github.com/tu-usuario/beatmap.git
+cd beatmap
+```
+
+### 3. Instalar Dependencias
+
+```bash
+# Con pnpm (recomendado)
+pnpm install
+
+# O con npm
+npm install
+```
+
+### 4. Iniciar Servidor de Desarrollo
+
+```bash
+# Con pnpm
+pnpm run dev
+
+# O con npm
+npm run dev
+```
+
+Abre tu navegador en la URL indicada por la terminal (usualmente `http://localhost:5173`).
+
+### 5. Compilar para Producción
+
+```bash
+# Compilar TypeScript y empaquetar con Vite
+pnpm run build
+
+# Previsualizar el build de producción localmente
+pnpm run preview
+```
+
+---
+
+## 🎮 Controles por Defecto
+
+* **Golpear Círculos:** Teclas `Z` y `X` (o el Clic Izquierdo del Ratón).
+* **Pausar / Reanudar:** Barra espaciadora (`ESPACIO`) o tecla `Escape`.
+* *Las teclas de golpe `K1` y `K2` se pueden reconfigurar directamente desde el panel de ajustes en el menú principal.*
 
 ---
 
