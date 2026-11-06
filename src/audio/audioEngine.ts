@@ -241,7 +241,7 @@ class AudioEngine {
     const left = buffer.getChannelData(0);
     const right = buffer.getChannelData(1);
 
-    const bpm = theme === 'fast-techno' ? 160 : theme === 'cyberpunk' ? 128 : theme === 'synthwave' ? 120 : 100;
+    const bpm = theme === 'fast-techno' ? 155 : theme === 'cyberpunk' ? 124 : theme === 'synthwave' ? 120 : 100;
     const beatLen = 60 / bpm;
     const eighthLen = beatLen / 2;
 

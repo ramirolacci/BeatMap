@@ -59,6 +59,7 @@ export interface Beatmap {
   synthTheme?: 'synthwave' | 'cyberpunk' | 'chillhop' | 'fast-techno';
   hitObjects: HitObject[];
   bgUrl?: string;
+  coverUrl?: string;
 }
 
 export interface KeyState {

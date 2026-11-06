@@ -173,20 +173,24 @@ export class GameEngine {
     };
   }
 
-  // Manejar toque/clic del usuario con cálculo ergonómico de distancia y ventana de impacto
+  // Manejar toque/clic del usuario con validación inmediata desde que la nota es visible
   public handleTap(playfieldX: number, playfieldY: number): boolean {
     const { w300, w100, w50 } = this.getTimingWindows();
     const baseRadius = this.getCircleRadius();
-    const hitRadius = baseRadius * 1.5; // Radio ergonómico de toque
+    const hitRadius = baseRadius * 1.6; // Radio ergonómico de toque
+    const preempt = this.getPreemptMs();
 
-    // Candidatos elegibles ordenados cronológicamente
+    // Candidatos elegibles: cualquier nota visible en pantalla (desde que aparece hasta que expira)
     const candidates = this.activeObjects
       .filter(obj => {
         if (this.processedObjectIds.has(obj.id)) return false;
         // En sliders solo permitimos golpear la cabeza si aún no se golpeó
         if (obj.type === 'slider' && this.activeSliders.has(obj.id)) return false;
-        const timeDiff = Math.abs(this.currentTimeMs - obj.time);
-        return timeDiff <= w50;
+        
+        // VÁLIDO: Desde que el círculo aparece en pantalla hasta antes de que desaparezca
+        const isVisible = this.currentTimeMs >= (obj.time - preempt);
+        const notExpired = this.currentTimeMs <= (obj.time + w50 + 80);
+        return isVisible && notExpired;
       })
       .sort((a, b) => a.time - b.time);
 
@@ -200,36 +204,33 @@ export class GameEngine {
       const offset = this.currentTimeMs - candidate.time;
       const absOffset = Math.abs(offset);
 
-      let type: JudgementType = 0;
-      if (absOffset <= w300) {
-        type = 300;
-      } else if (absOffset <= w100) {
-        type = 100;
-      } else if (absOffset <= w50) {
-        type = 50;
+      // Evaluación de puntuación: siempre otorga acierto válido si la nota está visible
+      let type: JudgementType = 300;
+      if (absOffset <= Math.max(w300, 75)) {
+        type = 300; // Golpe perfecto al momento del cierre
+      } else if (absOffset <= Math.max(w100, 160)) {
+        type = 100; // Golpe anticipado moderado
       } else {
-        type = 0;
+        type = 50;  // Golpe temprano en cuanto apareció el círculo
       }
 
       audioEngine.playHitsound();
 
-      // Agregar explosión visual de impacto si acertó
-      if (type > 0) {
-        this.activeExplosions.push({
-          id: `exp_${Date.now()}_${Math.random()}`,
-          x: candidate.x,
-          y: candidate.y,
-          radius: baseRadius,
-          color: type === 300 ? '#38bdf8' : type === 100 ? '#4ade80' : '#facc15',
-          spawnTime: this.currentTimeMs
-        });
-      }
+      // Agregar explosión visual de impacto inmediata
+      this.activeExplosions.push({
+        id: `exp_${Date.now()}_${Math.random()}`,
+        x: candidate.x,
+        y: candidate.y,
+        radius: baseRadius,
+        color: type === 300 ? '#38bdf8' : type === 100 ? '#4ade80' : '#facc15',
+        spawnTime: this.currentTimeMs
+      });
 
       if (candidate.type === 'slider') {
-        // Iniciar slider tracking
+        // Iniciar slider tracking con cabeza acertada
         this.activeSliders.set(candidate.id, {
           object: candidate as SliderObject,
-          headHit: type > 0,
+          headHit: true,
           isTracking: true,
           broken: false,
           completed: false

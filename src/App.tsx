@@ -3,7 +3,6 @@ import type { GameState, Beatmap, GameSettings, ScoreState, KeyState } from './t
 import { GameEngine } from './engine/gameEngine';
 import { audioEngine } from './audio/audioEngine';
 import { getInitialBeatmapList, ensureBeatmapLoaded } from './utils/defaultSongLoader';
-import { generateBeatmapFromAudioBuffer, type DifficultyLevel } from './utils/audioBeatmapGenerator';
 import { Disc, Loader2, RotateCcw, Menu, Skull } from 'lucide-react';
 
 import { MainMenu } from './components/MainMenu';
@@ -132,56 +131,6 @@ export function App() {
     }
   }, [selectedBeatmap, settings]);
 
-  const handleChangeDifficulty = async (difficulty: DifficultyLevel) => {
-    if (!selectedBeatmap) return;
-
-    if (selectedBeatmap.audioBuffer || selectedBeatmap.audioUrl) {
-      setIsLoadingSong(true);
-      setLoadingSongMsg(`Ajustando canción a dificultad ${difficulty === 'Easy' ? 'Fácil' : difficulty === 'Normal' ? 'Normal' : difficulty === 'Hard' ? 'Difícil' : 'Experto'}...`);
-      try {
-        let buffer = selectedBeatmap.audioBuffer;
-        if (!buffer && selectedBeatmap.audioUrl) {
-          buffer = await audioEngine.loadAudioFromUrl(selectedBeatmap.audioUrl);
-        }
-        if (buffer) {
-          const generated = generateBeatmapFromAudioBuffer(
-            buffer,
-            selectedBeatmap.title,
-            difficulty,
-            selectedBeatmap.bpm
-          );
-          generated.id = selectedBeatmap.id;
-          generated.title = selectedBeatmap.title;
-          generated.artist = selectedBeatmap.artist;
-          generated.audioUrl = selectedBeatmap.audioUrl;
-          generated.audioBuffer = buffer;
-
-          setSelectedBeatmap(generated);
-          setBeatmaps(prev => prev.map(m => m.id === selectedBeatmap.id ? generated : m));
-        }
-      } catch (err) {
-        console.error('Error al cambiar dificultad:', err);
-      } finally {
-        setIsLoadingSong(false);
-      }
-    } else {
-      const isEasy = difficulty === 'Easy';
-      const isNormal = difficulty === 'Normal';
-      const isHard = difficulty === 'Hard';
-
-      const updated: Beatmap = {
-        ...selectedBeatmap,
-        version: isEasy ? 'Fácil' : isNormal ? 'Normal' : isHard ? 'Difícil' : 'Experto',
-        ar: isEasy ? 6.0 : isNormal ? 7.4 : isHard ? 8.5 : 9.4,
-        cs: isEasy ? 3.4 : isNormal ? 3.8 : isHard ? 4.0 : 4.2,
-        od: isEasy ? 5.0 : isNormal ? 6.5 : isHard ? 7.8 : 8.8,
-        hpDrain: isEasy ? 3.0 : isNormal ? 4.2 : isHard ? 5.5 : 6.5
-      };
-      setSelectedBeatmap(updated);
-      setBeatmaps(prev => prev.map(m => m.id === selectedBeatmap.id ? updated : m));
-    }
-  };
-
   // Manejo de visibilidad del cursor
   useEffect(() => {
     if (gameState === 'playing') {
@@ -308,7 +257,6 @@ export function App() {
             setBeatmaps(prev => [newMap, ...prev]);
             setSelectedBeatmap(newMap);
           }}
-          onChangeDifficulty={handleChangeDifficulty}
         />
       )}
 
